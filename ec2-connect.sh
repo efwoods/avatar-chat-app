@@ -1,1 +1,1 @@
-ssh -i "~/.ssh/chat-studio.pem" ubuntu@ec2-44-204-90-196.compute-1.amazonaws.com
+ssh -i "~/.ssh/chat-studio.pem" ubuntu@ec2-54-152-31-157.compute-1.amazonaws.com
