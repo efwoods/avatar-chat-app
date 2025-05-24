@@ -208,7 +208,7 @@ const AvatarChatApp = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-            Avatar Chat Studio
+            Chat Studio
           </h1>
           <button
             onClick={() => setShowCreateModal(true)}
