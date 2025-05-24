@@ -3,6 +3,10 @@ version: "3.8"
 services:
   avatar-chat-app:
     build: .
-    ports:
-      - "8080:80"
-    restart: unless-stopped
+    context: .
+    dockerfile: Dockerfile
+  image: evdev3/avatar-chat-app:latest
+
+  ports:
+    - "8080:80"
+  restart: unless-stopped
