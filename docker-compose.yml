@@ -5,7 +5,7 @@ services:
     build: .
     context: .
     dockerfile: Dockerfile
-  image: evdev3/avatar-chat-app:latest
+  image: evdev3/chat-app:latest
 
   ports:
     - "8080:80"
