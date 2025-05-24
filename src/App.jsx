@@ -204,7 +204,7 @@ const AvatarChatApp = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
-      <div className="container mx-auto p-6 h-screen flex flex-col">
+      <div className="w-screen h-screen flex flex-col p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
@@ -219,7 +219,7 @@ const AvatarChatApp = () => {
           </button>
         </div>
 
-        <div className="flex gap-6 flex-1 overflow-hidden">
+        <div className="flex flex-1 overflow-hidden w-full h-full gap-6">
           {/* Sidebar - Avatar List */}
           <div className="w-80 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
