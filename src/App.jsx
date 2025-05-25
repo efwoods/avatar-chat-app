@@ -14,6 +14,8 @@ import {
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
   UserPenIcon,
+  EarOff,
+  Ear,
 } from "lucide-react";
 
 import SidebarToggle from "./components/SidebarToggle";
@@ -395,9 +397,9 @@ const AvatarChatApp = () => {
                     }
                   >
                     {isRecording ? (
-                      <MicOff className="w-6 h-6" />
+                      <EarOff className="w-6 h-6" />
                     ) : (
-                      <Mic className="w-6 h-6" />
+                      <Ear className="w-6 h-6" />
                     )}
                   </button>
 
@@ -416,6 +418,23 @@ const AvatarChatApp = () => {
                     aria-label="Message input"
                   />
 
+                  <button
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`p-2 rounded transition-colors focus:outline focus:outline-2 ${
+                      isRecording
+                        ? "bg-red-600 hover:bg-red-700"
+                        : "bg-cyan-500 hover:bg-cyan-600"
+                    }`}
+                    aria-label={
+                      isRecording ? "Stop recording" : "Start recording"
+                    }
+                  >
+                    {isRecording ? (
+                      <MicOff className="w-6 h-6" />
+                    ) : (
+                      <Mic className="w-6 h-6" />
+                    )}
+                  </button>
                   <button
                     onClick={sendMessage}
                     className="bg-cyan-500 p-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400"
