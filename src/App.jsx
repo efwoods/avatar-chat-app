@@ -11,7 +11,11 @@ import {
   User,
   MessageCircle,
   Settings,
+  PanelLeftCloseIcon,
+  PanelLeftOpenIcon,
 } from "lucide-react";
+
+import SidebarToggle from "./components/SidebarToggle";
 
 const AvatarChatApp = () => {
   const [avatars, setAvatars] = useState([]);
@@ -25,7 +29,8 @@ const AvatarChatApp = () => {
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
-
+  // Add state for sidebar toggle
+  const [sidebarVisible, setSidebarVisible] = useState(true);
   // Create a new avatar
   const createAvatar = () => {
     if (!newAvatarName.trim()) return;
@@ -220,48 +225,71 @@ const AvatarChatApp = () => {
         </div>
 
         <div className="flex flex-1 overflow-hidden w-full h-full gap-6">
-          {/* Sidebar - Avatar List */}
-          <div className="w-80 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <User size={20} />
-              Your Avatars
-            </h2>
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {avatars.map((avatar) => (
-                <div
-                  key={avatar.id}
-                  className={`p-4 rounded-xl cursor-pointer transition-all duration-300 ${
-                    activeAvatar?.id === avatar.id
-                      ? "bg-gradient-to-r from-cyan-500/30 to-purple-600/30 border border-cyan-400/50"
-                      : "bg-white/5 hover:bg-white/10 border border-transparent"
-                  }`}
-                  onClick={() => setActiveAvatar(avatar)}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{avatar.name}</h3>
-                      <p className="text-sm text-gray-300 mt-1">
-                        {avatar.description || "No description"}
-                      </p>
-                      <div className="flex gap-4 mt-2 text-xs text-gray-400">
-                        <span>{avatar.documents.length} docs</span>
-                        <span>{avatar.images.length} images</span>
-                      </div>
-                    </div>
+          {/* Sidebar toggle button */}
+          <button
+            onClick={() => setSidebarVisible((v) => !v)}
+            className="absolute top-4 left-4 z-50 bg-cyan-500 text-white p-2 rounded-md group transition-all duration-300 ease-in-out"
+          >
+            {/* Icon swap based on state */}
+            {sidebarVisible ? (
+              <PanelLeftCloseIcon className="w-6 h-6" />
+            ) : (
+              <PanelLeftOpenIcon className="w-6 h-6" />
+            )}
+
+            {/* Hover Text */}
+            <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              {sidebarVisible ? "Close Sidebar" : "Open Sidebar"}
+            </span>
+          </button>
+
+          {/* Conditionally render sidebar */}
+          {sidebarVisible && (
+            <SidebarToggle
+              avatars={avatars}
+              activeAvatar={activeAvatar}
+              setActiveAvatar={setActiveAvatar}
+              deleteAvatar={deleteAvatar}
+            />
+          )}
+
+          {/* Create Avatar Modal */}
+          {showCreateModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+              <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 w-96">
+                <h2 className="text-2xl font-bold mb-4">Create New Avatar</h2>
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    value={newAvatarName}
+                    onChange={(e) => setNewAvatarName(e.target.value)}
+                    placeholder="Avatar Name"
+                    className="w-full bg-white/10 border border-white/30 rounded-xl px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  />
+                  <textarea
+                    value={newAvatarDescription}
+                    onChange={(e) => setNewAvatarDescription(e.target.value)}
+                    placeholder="Avatar Description (optional)"
+                    className="w-full bg-white/10 border border-white/30 rounded-xl px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 h-24 resize-none"
+                  />
+                  <div className="flex gap-3">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteAvatar(avatar.id);
-                      }}
-                      className="text-red-400 hover:text-red-300 p-1 rounded transition-colors"
+                      onClick={() => setShowCreateModal(false)}
+                      className="flex-1 bg-gray-500 hover:bg-gray-600 px-4 py-2 rounded-xl transition-colors"
                     >
-                      <Trash2 size={16} />
+                      Cancel
+                    </button>
+                    <button
+                      onClick={createAvatar}
+                      className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-4 py-2 rounded-xl transition-all duration-300"
+                    >
+                      Create
                     </button>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col">
@@ -420,44 +448,6 @@ const AvatarChatApp = () => {
           </div>
         </div>
       </div>
-
-      {/* Create Avatar Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 w-96">
-            <h2 className="text-2xl font-bold mb-4">Create New Avatar</h2>
-            <div className="space-y-4">
-              <input
-                type="text"
-                value={newAvatarName}
-                onChange={(e) => setNewAvatarName(e.target.value)}
-                placeholder="Avatar Name"
-                className="w-full bg-white/10 border border-white/30 rounded-xl px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              />
-              <textarea
-                value={newAvatarDescription}
-                onChange={(e) => setNewAvatarDescription(e.target.value)}
-                placeholder="Avatar Description (optional)"
-                className="w-full bg-white/10 border border-white/30 rounded-xl px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 h-24 resize-none"
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="flex-1 bg-gray-500 hover:bg-gray-600 px-4 py-2 rounded-xl transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={createAvatar}
-                  className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-4 py-2 rounded-xl transition-all duration-300"
-                >
-                  Create
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Hidden File Input */}
       <input
