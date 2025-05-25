@@ -265,10 +265,10 @@ const AvatarChatApp = () => {
           <h1 className="text-2xl font-semibold">Chat Studio</h1>
         </div>
 
-        <div className="flex flex-row flex-grow overflow-hidden rounded-lg border border-gray-800 shadow-lg">
+        <div className="flex flex-row flex-grow overflow-hidden rounded-2xl shadow-lg gap-x-4">
           {/* Sidebar */}
           {sidebarVisible && (
-            <div className="w-64 bg-gray-800 p-4 overflow-y-auto flex flex-col gap-4">
+            <div className="w-64 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20 p-4 overflow-y-auto flex flex-col gap-4">
               {/* Create Avatar */}
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -323,7 +323,7 @@ const AvatarChatApp = () => {
           )}
 
           {/* Main Chat Section */}
-          <div className="flex flex-col flex-grow bg-gray-900 rounded-lg p-4 overflow-hidden">
+          <div className="flex flex-col flex-grow bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20 p-4 overflow-hidden">
             {!activeAvatar && (
               <div className="flex-1 flex items-center justify-center bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20">
                 <div className="text-center">
@@ -460,12 +460,12 @@ const AvatarChatApp = () => {
         {/* Create Avatar Modal */}
         {showCreateModal && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20 bg-opacity-75 flex items-center justify-center z-50"
             role="dialog"
             aria-modal="true"
             aria-labelledby="create-avatar-title"
           >
-            <div className="bg-gray-900 p-6 rounded-lg w-96 max-w-full">
+            <div className="bg-gray/20 p-6 rounded-lg w-96 max-w-full">
               <h2
                 id="create-avatar-title"
                 className="text-xl font-semibold mb-4 text-white"
