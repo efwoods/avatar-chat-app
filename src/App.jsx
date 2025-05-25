@@ -325,8 +325,17 @@ const AvatarChatApp = () => {
           {/* Main Chat Section */}
           <div className="flex flex-col flex-grow bg-gray-900 rounded-lg p-4 overflow-hidden">
             {!activeAvatar && (
-              <div className="flex-grow flex justify-center items-center text-gray-400">
-                Select or create an avatar to start chatting.
+              <div className="flex-1 flex items-center justify-center bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20">
+                <div className="text-center">
+                  <User size={64} className="mx-auto mb-4 text-gray-400" />
+                  <h2 className="text-2xl font-semibold mb-2">
+                    Select an Avatar
+                  </h2>
+                  <p className="text-gray-400">
+                    Choose an avatar from the sidebar or create a new one to
+                    start chatting
+                  </p>
+                </div>
               </div>
             )}
 
