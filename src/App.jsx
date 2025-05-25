@@ -13,6 +13,7 @@ import {
   Settings,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
+  UserPenIcon,
 } from "lucide-react";
 
 import SidebarToggle from "./components/SidebarToggle";
@@ -209,40 +210,45 @@ const AvatarChatApp = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
-      <div className="w-screen h-screen flex flex-col p-6">
+      <div className="w-screen h-screen flex flex-col p-6 min-h-screen">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-            Chat Studio
-          </h1>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
-          >
-            <Plus size={20} />
-            Create Avatar
-          </button>
-        </div>
-
-        <div className="flex flex-1 overflow-hidden w-full h-full gap-6">
+        <div className="flex justify-start items-center mb-6 gap-6">
           {/* Sidebar toggle button */}
           <button
             onClick={() => setSidebarVisible((v) => !v)}
-            className="absolute top-4 left-4 z-50 bg-cyan-500 text-white p-2 rounded-md group transition-all duration-300 ease-in-out"
+            className="bg-cyan-500 text-white w-16 h-12 items-center justify-center group transition-all duration-300 ease-in-out"
           >
             {/* Icon swap based on state */}
             {sidebarVisible ? (
-              <PanelLeftCloseIcon className="w-6 h-6" />
+              <PanelLeftCloseIcon className="flex w-6 h-6" />
             ) : (
-              <PanelLeftOpenIcon className="w-6 h-6" />
+              <PanelLeftOpenIcon className="flex w-6 h-6" />
             )}
 
             {/* Hover Text */}
-            <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            <span className="relative left-full top-1/2 -translate-y-1/2 ml-2 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
               {sidebarVisible ? "Close Sidebar" : "Open Sidebar"}
             </span>
           </button>
 
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="relative group w-16 h-12 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 rounded-xl flex items-center justify-center transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            <UserPenIcon size={20} />
+
+            {/* Tooltip */}
+            <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+              Create Avatar 
+            </span>
+          </button>
+
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            Chat Studio
+          </h1>
+        </div>
+
+        <div className="flex flex-1 overflow-hidden w-full h-full gap-6">
           {/* Conditionally render sidebar */}
           {sidebarVisible && (
             <SidebarToggle
