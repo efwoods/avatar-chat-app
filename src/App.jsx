@@ -239,7 +239,7 @@ const AvatarChatApp = () => {
 
             {/* Tooltip */}
             <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-              Create Avatar 
+              Create Avatar
             </span>
           </button>
 
@@ -312,13 +312,6 @@ const AvatarChatApp = () => {
                         {activeAvatar.description}
                       </p>
                     </div>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105"
-                    >
-                      <Upload size={18} />
-                      Upload Files
-                    </button>
                   </div>
 
                   {/* File Lists */}
@@ -373,7 +366,6 @@ const AvatarChatApp = () => {
                       Chat with {activeAvatar.name}
                     </h3>
                   </div>
-
                   {/* Messages */}
                   <div className="flex-1 p-4 overflow-y-auto space-y-4">
                     {(messages[activeAvatar.id] || []).map((message) => (
@@ -405,10 +397,15 @@ const AvatarChatApp = () => {
                       </div>
                     ))}
                   </div>
-
                   {/* Input Area */}
                   <div className="p-4 border-t border-white/20">
                     <div className="flex gap-3">
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105"
+                      >
+                        <Upload size={18} />
+                      </button>
                       <input
                         type="text"
                         value={inputMessage}
