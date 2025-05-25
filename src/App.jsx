@@ -30,69 +30,95 @@ const AvatarChatApp = () => {
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
-  // Add state for sidebar toggle
+  const messagesEndRef = useRef(null);
+
   const [sidebarVisible, setSidebarVisible] = useState(true);
-  // Create a new avatar
+
+  // Auto scroll to bottom when messages change for active avatar
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, activeAvatar]);
+
+  // Keyboard shortcut: Ctrl+B to toggle sidebar
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        setSidebarVisible((v) => !v);
+      }
+      if (e.key === "Enter" && !e.shiftKey && activeAvatar) {
+        e.preventDefault();
+        sendMessage();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [inputMessage, activeAvatar]);
+
   const createAvatar = () => {
     if (!newAvatarName.trim()) return;
 
     const newAvatar = {
       id: Date.now(),
-      name: newAvatarName,
-      description: newAvatarDescription,
+      name: newAvatarName.trim(),
+      description: newAvatarDescription.trim(),
       documents: [],
       images: [],
       createdAt: new Date().toISOString(),
     };
 
-    setAvatars([...avatars, newAvatar]);
+    setAvatars((prev) => [...prev, newAvatar]);
     setMessages((prev) => ({ ...prev, [newAvatar.id]: [] }));
+    setActiveAvatar(newAvatar); // Auto-select new avatar
     setNewAvatarName("");
     setNewAvatarDescription("");
     setShowCreateModal(false);
   };
 
-  // Delete avatar
   const deleteAvatar = (avatarId) => {
-    setAvatars(avatars.filter((a) => a.id !== avatarId));
-    const newMessages = { ...messages };
-    delete newMessages[avatarId];
-    setMessages(newMessages);
+    setAvatars((prev) => prev.filter((a) => a.id !== avatarId));
+    setMessages((prev) => {
+      const copy = { ...prev };
+      delete copy[avatarId];
+      return copy;
+    });
     if (activeAvatar?.id === avatarId) {
       setActiveAvatar(null);
     }
   };
 
-  // Handle file upload
   const handleFileUpload = (event) => {
     if (!activeAvatar) return;
 
     const files = Array.from(event.target.files);
-    const updatedAvatars = avatars.map((avatar) => {
-      if (avatar.id === activeAvatar.id) {
-        const newFiles = files.map((file) => ({
-          id: Date.now() + Math.random(),
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          uploadedAt: new Date().toISOString(),
-        }));
+    if (files.length === 0) return;
 
-        const isImage = (type) => type.startsWith("image/");
-        const newDocuments = newFiles.filter((f) => !isImage(f.type));
-        const newImages = newFiles.filter((f) => isImage(f.type));
+    setAvatars((prev) =>
+      prev.map((avatar) => {
+        if (avatar.id === activeAvatar.id) {
+          const newFiles = files.map((file) => ({
+            id: Date.now() + Math.random(),
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            uploadedAt: new Date().toISOString(),
+          }));
 
-        return {
-          ...avatar,
-          documents: [...avatar.documents, ...newDocuments],
-          images: [...avatar.images, ...newImages],
-        };
-      }
-      return avatar;
-    });
+          const isImage = (type) => type.startsWith("image/");
+          const newDocuments = newFiles.filter((f) => !isImage(f.type));
+          const newImages = newFiles.filter((f) => isImage(f.type));
 
-    setAvatars(updatedAvatars);
-    setActiveAvatar(updatedAvatars.find((a) => a.id === activeAvatar.id));
+          return {
+            ...avatar,
+            documents: [...avatar.documents, ...newDocuments],
+            images: [...avatar.images, ...newImages],
+          };
+        }
+        return avatar;
+      })
+    );
 
     // Add system message about upload
     const uploadMessage = {
@@ -108,22 +134,30 @@ const AvatarChatApp = () => {
       ...prev,
       [activeAvatar.id]: [...(prev[activeAvatar.id] || []), uploadMessage],
     }));
+
+    // Clear file input value so same files can be uploaded again if needed
+    event.target.value = "";
   };
 
-  // Send text message
   const sendMessage = () => {
     if (!inputMessage.trim() || !activeAvatar) return;
 
     const userMessage = {
       id: Date.now(),
-      content: inputMessage,
+      content: inputMessage.trim(),
       sender: "user",
       timestamp: new Date().toISOString(),
     };
 
     const avatarResponse = {
       id: Date.now() + 1,
-      content: `Hello! I'm ${activeAvatar.name}. I received your message: "${inputMessage}". I have access to ${activeAvatar.documents.length} documents and ${activeAvatar.images.length} images to help answer your questions.`,
+      content: `Hello! I'm ${
+        activeAvatar.name
+      }. I received your message: "${inputMessage.trim()}". I have access to ${
+        activeAvatar.documents.length
+      } documents and ${
+        activeAvatar.images.length
+      } images to help answer your questions.`,
       sender: "avatar",
       timestamp: new Date().toISOString(),
     };
@@ -140,7 +174,6 @@ const AvatarChatApp = () => {
     setInputMessage("");
   };
 
-  // Voice recording functions
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -181,6 +214,7 @@ const AvatarChatApp = () => {
       sender: "user",
       timestamp: new Date().toISOString(),
       isVoice: true,
+      audioBlob, // could be used for playback
     };
 
     const avatarResponse = {
@@ -216,251 +250,244 @@ const AvatarChatApp = () => {
           {/* Sidebar toggle button */}
           <button
             onClick={() => setSidebarVisible((v) => !v)}
-            className="bg-cyan-500 text-white w-16 h-12 items-center justify-center group transition-all duration-300 ease-in-out"
+            className="bg-cyan-500 text-white w-16 h-12 items-center justify-center group transition-all duration-300 ease-in-out focus:outline focus:outline-2 focus:outline-cyan-400"
+            aria-label={sidebarVisible ? "Close Sidebar" : "Open Sidebar"}
           >
-            {/* Icon swap based on state */}
             {sidebarVisible ? (
               <PanelLeftCloseIcon className="flex w-6 h-6" />
             ) : (
               <PanelLeftOpenIcon className="flex w-6 h-6" />
             )}
-
-            {/* Hover Text */}
-            <span className="relative left-full top-1/2 -translate-y-1/2 ml-2 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-              {sidebarVisible ? "Close Sidebar" : "Open Sidebar"}
-            </span>
           </button>
 
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="relative group w-16 h-12 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 rounded-xl flex items-center justify-center transition-all duration-300 transform hover:scale-105 shadow-lg"
-          >
-            <UserPenIcon size={20} />
-
-            {/* Tooltip */}
-            <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 bg-black text-white text-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-              Create Avatar
-            </span>
-          </button>
-
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-            Chat Studio
-          </h1>
+          <h1 className="text-2xl font-semibold">Chat Studio</h1>
         </div>
 
-        <div className="flex flex-1 overflow-hidden w-full h-full gap-6">
-          {/* Conditionally render sidebar */}
+        <div className="flex flex-row flex-grow overflow-hidden rounded-lg border border-gray-800 shadow-lg">
+          {/* Sidebar */}
           {sidebarVisible && (
-            <SidebarToggle
-              avatars={avatars}
-              activeAvatar={activeAvatar}
-              setActiveAvatar={setActiveAvatar}
-              deleteAvatar={deleteAvatar}
-            />
-          )}
+            <div className="w-64 bg-gray-800 p-4 overflow-y-auto flex flex-col gap-4">
+              {/* Create Avatar */}
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="text-sm uppercase font-semibold text-center bg-cyan-500 py-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400 w-15"
+              >
+                <UserPenIcon className="w-6 h-6" />
+              </button>
 
-          {/* Create Avatar Modal */}
-          {showCreateModal && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-              <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 w-96">
-                <h2 className="text-2xl font-bold mb-4">Create New Avatar</h2>
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    value={newAvatarName}
-                    onChange={(e) => setNewAvatarName(e.target.value)}
-                    placeholder="Avatar Name"
-                    className="w-full bg-white/10 border border-white/30 rounded-xl px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                  />
-                  <textarea
-                    value={newAvatarDescription}
-                    onChange={(e) => setNewAvatarDescription(e.target.value)}
-                    placeholder="Avatar Description (optional)"
-                    className="w-full bg-white/10 border border-white/30 rounded-xl px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 h-24 resize-none"
-                  />
-                  <div className="flex gap-3">
+              {/* Avatars List */}
+              <div className="flex flex-col gap-2 mt-2">
+                {avatars.length === 0 && (
+                  <div className="text-sm text-gray-400 text-center">
+                    No avatars yet.
+                  </div>
+                )}
+                {avatars.map((avatar) => (
+                  <div
+                    key={avatar.id}
+                    onClick={() => setActiveAvatar(avatar)}
+                    className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors duration-300 ${
+                      activeAvatar?.id === avatar.id
+                        ? "bg-cyan-600 text-white"
+                        : "hover:bg-cyan-700 text-gray-300"
+                    } focus:outline focus:outline-2 focus:outline-cyan-400`}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") setActiveAvatar(avatar);
+                      if (e.key === "Delete") deleteAvatar(avatar.id);
+                    }}
+                  >
+                    <User className="w-6 h-6" />
+                    <div className="flex flex-col flex-grow">
+                      <span className="font-semibold">{avatar.name}</span>
+                      <span className="text-xs text-gray-400 truncate">
+                        {avatar.description}
+                      </span>
+                    </div>
                     <button
-                      onClick={() => setShowCreateModal(false)}
-                      className="flex-1 bg-gray-500 hover:bg-gray-600 px-4 py-2 rounded-xl transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteAvatar(avatar.id);
+                      }}
+                      className="text-red-400 hover:text-red-600 focus:outline focus:outline-2 focus:outline-red-400"
+                      aria-label={`Delete avatar ${avatar.name}`}
                     >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={createAvatar}
-                      className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-4 py-2 rounded-xl transition-all duration-300"
-                    >
-                      Create
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
-                </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col">
-            {activeAvatar ? (
-              <>
-                {/* Avatar Info & Upload */}
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
-                  <div className="flex justify-between items-center mb-4">
-                    <div>
-                      <h2 className="text-2xl font-bold">
-                        {activeAvatar.name}
-                      </h2>
-                      <p className="text-gray-300">
-                        {activeAvatar.description}
-                      </p>
-                    </div>
-                  </div>
+          {/* Main Chat Section */}
+          <div className="flex flex-col flex-grow bg-gray-900 rounded-lg p-4 overflow-hidden">
+            {!activeAvatar && (
+              <div className="flex-grow flex justify-center items-center text-gray-400">
+                Select or create an avatar to start chatting.
+              </div>
+            )}
 
-                  {/* File Lists */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="font-semibold mb-2 flex items-center gap-2">
-                        <FileText size={16} />
-                        Documents ({activeAvatar.documents.length})
-                      </h3>
-                      <div className="space-y-1 max-h-20 overflow-y-auto">
-                        {activeAvatar.documents.map((doc) => (
-                          <div
-                            key={doc.id}
-                            className="text-sm bg-white/5 p-2 rounded flex justify-between"
-                          >
-                            <span className="truncate">{doc.name}</span>
-                            <span className="text-gray-400">
-                              {formatFileSize(doc.size)}
-                            </span>
-                          </div>
-                        ))}
+            {activeAvatar && (
+              <>
+                {/* Messages */}
+                <div
+                  className="flex-grow overflow-y-auto mb-4 space-y-2 px-2"
+                  aria-live="polite"
+                  aria-atomic="false"
+                >
+                  {(messages[activeAvatar.id] || []).map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`max-w-[70%] p-2 rounded-lg ${
+                        msg.sender === "user"
+                          ? "bg-cyan-600 self-end text-white"
+                          : msg.sender === "avatar"
+                          ? "bg-gray-700 self-start text-white"
+                          : "bg-gray-600 self-center italic text-gray-300"
+                      }`}
+                    >
+                      {msg.isVoice ? (
+                        <audio
+                          controls
+                          src={URL.createObjectURL(msg.audioBlob)}
+                        />
+                      ) : (
+                        msg.content
+                      )}
+                      <div className="text-xs text-gray-400 mt-1 text-right select-none">
+                        {new Date(msg.timestamp).toLocaleTimeString()}
                       </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold mb-2 flex items-center gap-2">
-                        <Image size={16} />
-                        Images ({activeAvatar.images.length})
-                      </h3>
-                      <div className="space-y-1 max-h-20 overflow-y-auto">
-                        {activeAvatar.images.map((img) => (
-                          <div
-                            key={img.id}
-                            className="text-sm bg-white/5 p-2 rounded flex justify-between"
-                          >
-                            <span className="truncate">{img.name}</span>
-                            <span className="text-gray-400">
-                              {formatFileSize(img.size)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                  ))}
+                  <div ref={messagesEndRef} />
                 </div>
 
-                {/* Chat Area */}
-                <div className="flex-1 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 flex flex-col">
-                  {/* Chat Header */}
-                  <div className="p-4 border-b border-white/20">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <MessageCircle size={18} />
-                      Chat with {activeAvatar.name}
-                    </h3>
-                  </div>
-                  {/* Messages */}
-                  <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                    {(messages[activeAvatar.id] || []).map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${
-                          message.sender === "user"
-                            ? "justify-end"
-                            : "justify-start"
-                        }`}
-                      >
-                        <div
-                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
-                            message.sender === "user"
-                              ? "bg-gradient-to-r from-cyan-500 to-purple-600 text-white"
-                              : message.sender === "system"
-                              ? "bg-yellow-500/20 text-yellow-200 border border-yellow-500/30"
-                              : "bg-white/20 text-white border border-white/30"
-                          }`}
-                        >
-                          <p className="text-sm">{message.content}</p>
-                          {message.isVoice && (
-                            <div className="flex items-center gap-1 mt-1 text-xs opacity-75">
-                              <Mic size={12} />
-                              Voice Message
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Input Area */}
-                  <div className="p-4 border-t border-white/20">
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105"
-                      >
-                        <Upload size={18} />
-                      </button>
-                      <input
-                        type="text"
-                        value={inputMessage}
-                        onChange={(e) => setInputMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-                        placeholder="Type your message..."
-                        className="flex-1 bg-white/10 border border-white/30 rounded-xl px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent"
-                      />
-                      <button
-                        onClick={isRecording ? stopRecording : startRecording}
-                        className={`p-2 rounded-xl transition-all duration-300 ${
-                          isRecording
-                            ? "bg-red-500 hover:bg-red-600 animate-pulse"
-                            : "bg-purple-500 hover:bg-purple-600"
-                        }`}
-                      >
-                        {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
-                      </button>
-                      <button
-                        onClick={sendMessage}
-                        className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 p-2 rounded-xl transition-all duration-300 transform hover:scale-105"
-                      >
-                        <Send size={20} />
-                      </button>
-                    </div>
-                  </div>
+                {/* File Upload and Input */}
+                <div className="flex gap-2 items-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    aria-label="Upload files"
+                  />
+                  <button
+                    onClick={() =>
+                      fileInputRef.current && fileInputRef.current.click()
+                    }
+                    className="bg-cyan-500 p-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400"
+                    aria-label="Upload files"
+                  >
+                    <Upload className="w-6 h-6" />
+                  </button>
+
+                  <button
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`p-2 rounded transition-colors focus:outline focus:outline-2 ${
+                      isRecording
+                        ? "bg-red-600 hover:bg-red-700"
+                        : "bg-cyan-500 hover:bg-cyan-600"
+                    }`}
+                    aria-label={
+                      isRecording ? "Stop recording" : "Start recording"
+                    }
+                  >
+                    {isRecording ? (
+                      <MicOff className="w-6 h-6" />
+                    ) : (
+                      <Mic className="w-6 h-6" />
+                    )}
+                  </button>
+
+                  <input
+                    type="text"
+                    placeholder="Type a message..."
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                      }
+                    }}
+                    className="flex-grow min-w-0 rounded px-3 py-2 bg-gray-800 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white"
+                    aria-label="Message input"
+                  />
+
+                  <button
+                    onClick={sendMessage}
+                    className="bg-cyan-500 p-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400"
+                    aria-label="Send message"
+                  >
+                    <Send className="w-6 h-6" />
+                  </button>
                 </div>
               </>
-            ) : (
-              <div className="flex-1 flex items-center justify-center bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20">
-                <div className="text-center">
-                  <User size={64} className="mx-auto mb-4 text-gray-400" />
-                  <h2 className="text-2xl font-semibold mb-2">
-                    Select an Avatar
-                  </h2>
-                  <p className="text-gray-400">
-                    Choose an avatar from the sidebar or create a new one to
-                    start chatting
-                  </p>
-                </div>
-              </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Hidden File Input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        onChange={handleFileUpload}
-        className="hidden"
-        accept="*/*"
-      />
+        {/* Create Avatar Modal */}
+        {showCreateModal && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-avatar-title"
+          >
+            <div className="bg-gray-900 p-6 rounded-lg w-96 max-w-full">
+              <h2
+                id="create-avatar-title"
+                className="text-xl font-semibold mb-4 text-white"
+              >
+                <div className="flex items-center gap-2">
+                  <UserPenIcon className="w-6 h-6" />
+                  <span>Create Avatar</span>
+                </div>
+              </h2>
+              <label className="block mb-2 text-sm text-gray-300">
+                Name
+                <input
+                  type="text"
+                  value={newAvatarName}
+                  onChange={(e) => setNewAvatarName(e.target.value)}
+                  className="w-full p-2 mt-1 rounded bg-gray-800 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white"
+                  autoFocus
+                  aria-required="true"
+                />
+              </label>
+              <label className="block mb-4 text-sm text-gray-300">
+                Description
+                <textarea
+                  value={newAvatarDescription}
+                  onChange={(e) => setNewAvatarDescription(e.target.value)}
+                  className="w-full p-2 mt-1 rounded bg-gray-800 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white"
+                  rows={3}
+                  aria-multiline="true"
+                />
+              </label>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createAvatar}
+                  className="px-4 py-2 bg-cyan-600 rounded hover:bg-cyan-700 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400"
+                  disabled={!newAvatarName.trim()}
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
