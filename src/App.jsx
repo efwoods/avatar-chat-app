@@ -252,7 +252,7 @@ const AvatarChatApp = () => {
           {/* Sidebar toggle button */}
           <button
             onClick={() => setSidebarVisible((v) => !v)}
-            className="bg-cyan-500 text-white w-16 h-12 items-center justify-center group transition-all duration-300 ease-in-out focus:outline focus:outline-2 focus:outline-cyan-400"
+            className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
             aria-label={sidebarVisible ? "Close Sidebar" : "Open Sidebar"}
           >
             {sidebarVisible ? (
@@ -272,7 +272,7 @@ const AvatarChatApp = () => {
               {/* Create Avatar */}
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="text-sm uppercase font-semibold text-center bg-cyan-500 py-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400 w-15"
+                className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg w-15"
               >
                 <UserPenIcon className="w-6 h-6" />
               </button>
@@ -290,7 +290,7 @@ const AvatarChatApp = () => {
                     onClick={() => setActiveAvatar(avatar)}
                     className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors duration-300 ${
                       activeAvatar?.id === avatar.id
-                        ? "bg-cyan-600 text-white"
+                        ? "bg-white-600 text-white"
                         : "hover:bg-cyan-700 text-gray-300"
                     } focus:outline focus:outline-2 focus:outline-cyan-400`}
                     tabIndex={0}
@@ -423,7 +423,7 @@ const AvatarChatApp = () => {
                         sendMessage();
                       }
                     }}
-                    className="flex-grow min-w-0 rounded px-3 py-2 bg-gray-800 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white"
+                    className="flex-grow min-w-0 rounded px-3 py-2 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white bg-black/35 from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 transform shadow-lg"
                     aria-label="Message input"
                   />
 
@@ -481,7 +481,7 @@ const AvatarChatApp = () => {
                   type="text"
                   value={newAvatarName}
                   onChange={(e) => setNewAvatarName(e.target.value)}
-                  className="w-full p-2 mt-1 rounded bg-gray-800 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white"
+                  className="w-full p-2 mt-1 rounded bg-black/35 from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
                   autoFocus
                   aria-required="true"
                 />
@@ -491,7 +491,7 @@ const AvatarChatApp = () => {
                 <textarea
                   value={newAvatarDescription}
                   onChange={(e) => setNewAvatarDescription(e.target.value)}
-                  className="w-full p-2 mt-1 rounded bg-gray-800 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white"
+                  className="w-full p-2 mt-1 rounded bg-black/35 from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
                   rows={3}
                   aria-multiline="true"
                 />
