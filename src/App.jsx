@@ -19,13 +19,14 @@ import {
 } from "lucide-react";
 
 import SidebarToggle from "./components/SidebarToggle";
+import LiveTranscriptionTicker from "./components/LiveTranscriptionTicker"
 
 const AvatarChatApp = () => {
   const [avatars, setAvatars] = useState([]);
   const [activeAvatar, setActiveAvatar] = useState(null);
   const [messages, setMessages] = useState({});
   const [inputMessage, setInputMessage] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newAvatarName, setNewAvatarName] = useState("");
   const [newAvatarDescription, setNewAvatarDescription] = useState("");
@@ -194,16 +195,16 @@ const AvatarChatApp = () => {
       };
 
       mediaRecorder.start();
-      setIsRecording(true);
+      setIsTranscribing(true);
     } catch (error) {
       console.error("Error accessing microphone:", error);
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && isTranscribing) {
       mediaRecorderRef.current.stop();
-      setIsRecording(false);
+      setIsTranscribing(false);
     }
   };
 
@@ -324,8 +325,10 @@ const AvatarChatApp = () => {
 
           {/* Main Chat Section */}
           <div className="flex flex-col flex-grow bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20 p-4 overflow-hidden">
+
+          <LiveTranscriptionTicker isTranscribing={isTranscribing} />
             {!activeAvatar && (
-              <div className="flex-1 flex items-center justify-center bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20">
+              <div className="absolute inset-0 flex items-center justify-center bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20">
                 <div className="text-center">
                   <User size={64} className="mx-auto mb-4 text-gray-400" />
                   <h2 className="text-2xl font-semibold mb-2">
@@ -338,6 +341,7 @@ const AvatarChatApp = () => {
                 </div>
               </div>
             )}
+
 
             {activeAvatar && (
               <>
@@ -395,17 +399,17 @@ const AvatarChatApp = () => {
                   </button>
 
                   <button
-                    onClick={isRecording ? stopRecording : startRecording}
+                    onClick={isTranscribing ? stopRecording : startRecording}
                     className={
-                      isRecording 
+                      isTranscribing 
                       ? "transition-transform duration-300 hover:scale-105 p-2 rounded transition-colors focus:outline focus:outline-2 bg-yellow-600 hover:bg-yellow-700"
                       : "transition-transform duration-300 hover:scale-105 px-6 py-3 rounded-xl flex font-semibold gap-2 transition-all duration-300 transform shadow-lg items-center justify-center hover:bg-cyan-600 focus:outline focus:outline-2 focus:outline-cyan-400 min-w-0 border border-gray-700 text-white bg-black/35 from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700"
                     }
                     aria-label={
-                      isRecording ? "Stop recording" : "Start recording"
+                      isTranscribing ? "Stop recording" : "Start recording"
                     }
                   >
-                    {isRecording ? (
+                    {isTranscribing ? (
                       <EarOff className="w-6 h-6" />
                     ) : (
                       <Ear className="w-6 h-6" />
@@ -428,17 +432,17 @@ const AvatarChatApp = () => {
                   />
 
                   {/* <button
-                    onClick={isRecording ? stopRecording : startRecording}
+                    onClick={isTranscribing ? stopRecording : startRecording}
                     className={`p-2 rounded transition-colors focus:outline focus:outline-2 ${
-                      isRecording
+                      isTranscribing
                         ? "bg-red-600 hover:bg-red-700"
                         : "bg-cyan-500 hover:bg-cyan-600"
                     }`}
                     aria-label={
-                      isRecording ? "Stop recording" : "Start recording"
+                      isTranscribing ? "Stop recording" : "Start recording"
                     }
                   >
-                    {isRecording ? (
+                    {isTranscribing ? (
                       <MicOff className="w-6 h-6" />
                     ) : (
                       <Mic className="w-6 h-6" />
