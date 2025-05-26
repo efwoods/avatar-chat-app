@@ -20,13 +20,14 @@ import {
 
 import SidebarToggle from "./components/SidebarToggle";
 import LiveTranscriptionTicker from "./components/LiveTranscriptionTicker"
+import AudioStreamer from "./components/AudioStreamer"
 
 const AvatarChatApp = () => {
   const [avatars, setAvatars] = useState([]);
   const [activeAvatar, setActiveAvatar] = useState(null);
   const [messages, setMessages] = useState({});
   const [inputMessage, setInputMessage] = useState("");
-  const [isTranscribing, setIsTranscribing] = useState(false);
+  // const [isTranscribing, setIsTranscribing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newAvatarName, setNewAvatarName] = useState("");
   const [newAvatarDescription, setNewAvatarDescription] = useState("");
@@ -34,6 +35,13 @@ const AvatarChatApp = () => {
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
   const messagesEndRef = useRef(null);
+
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const wsRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const mediaStreamRef = useRef(null);
+  const sourceRef = useRef(null);
+  const processorRef = useRef(null);
 
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
@@ -245,6 +253,78 @@ const AvatarChatApp = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
+  const startTranscription = async () => {
+    const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
+
+    // WebSocket connection
+    const ws = new WebSocket(wsUrl);
+    ws.binaryType = "arraybuffer";
+    wsRef.current = ws;
+
+    ws.onopen = async () => {
+      console.log("WebSocket connection opened");
+      setIsTranscribing(true);
+
+      // Audio setup
+      audioContextRef.current = new AudioContext({ sampleRate: 16000 });
+      mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+      sourceRef.current = audioContextRef.current.createMediaStreamSource(mediaStreamRef.current);
+      processorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
+
+      processorRef.current.onaudioprocess = (e) => {
+        const input = e.inputBuffer.getChannelData(0);
+        const int16Data = convertFloat32ToInt16(input);
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(int16Data);
+        }
+      };
+
+      sourceRef.current.connect(processorRef.current);
+      processorRef.current.connect(audioContextRef.current.destination);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        const text = data.transcript;
+      
+        if (typeof text === "string" && text.trim() !== "") {
+          document.dispatchEvent(new CustomEvent("transcription", { detail: text }));
+        } else {
+          console.warn("Empty or invalid transcript received:", data);
+        }
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", error, event.data);
+      }
+    };
+
+    ws.onerror = (err) => console.error("WebSocket error:", err);
+    ws.onclose = () => {
+      console.log("WebSocket closed");
+      setIsTranscribing(false);
+    };
+  };
+
+  const stopTranscription = () => {
+    setIsTranscribing(false);
+    if (processorRef.current) processorRef.current.disconnect();
+    if (sourceRef.current) sourceRef.current.disconnect();
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+    }
+    if (audioContextRef.current) audioContextRef.current.close();
+    if (wsRef.current) wsRef.current.close();
+  };
+
+  function convertFloat32ToInt16(buffer) {
+    const l = buffer.length;
+    const result = new Int16Array(l);
+    for (let i = 0; i < l; i++) {
+      result[i] = Math.min(1, buffer[i]) * 0x7fff;
+    }
+    return result.buffer;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
       <div className="w-screen h-screen flex flex-col p-6 min-h-screen">
@@ -327,6 +407,8 @@ const AvatarChatApp = () => {
           <div className="flex flex-col flex-grow bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20 p-4 overflow-hidden">
 
           <LiveTranscriptionTicker isTranscribing={isTranscribing} />
+          <AudioStreamer isTranscribing={isTranscribing} />
+
             {!activeAvatar && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20">
                 <div className="text-center">
@@ -399,7 +481,7 @@ const AvatarChatApp = () => {
                   </button>
 
                   <button
-                    onClick={isTranscribing ? stopRecording : startRecording}
+                    onClick={isTranscribing ? stopTranscription : startTranscription}
                     className={
                       isTranscribing 
                       ? "transition-transform duration-300 hover:scale-105 p-2 rounded transition-colors focus:outline focus:outline-2 bg-yellow-600 hover:bg-yellow-700"
