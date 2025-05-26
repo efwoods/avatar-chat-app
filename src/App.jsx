@@ -252,7 +252,7 @@ const AvatarChatApp = () => {
           {/* Sidebar toggle button */}
           <button
             onClick={() => setSidebarVisible((v) => !v)}
-            className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
+            className="transition-transform duration-300 hover:scale-105  px-4 py-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400 min-w-0 rounded px-3 py-2 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white bg-black/35 from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl flex font-semibold gap-2 transition-all duration-300 transform shadow-lg items-center justify-center"
             aria-label={sidebarVisible ? "Close Sidebar" : "Open Sidebar"}
           >
             {sidebarVisible ? (
@@ -272,7 +272,7 @@ const AvatarChatApp = () => {
               {/* Create Avatar */}
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg w-15"
+                className="transition-transform duration-300 hover:scale-105  px-4 py-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400 min-w-0 rounded px-3 py-2 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white bg-black/35 from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl flex font-semibold gap-2 transition-all duration-300 transform shadow-lg items-center justify-center"
               >
                 <UserPenIcon className="w-6 h-6" />
               </button>
@@ -388,7 +388,7 @@ const AvatarChatApp = () => {
                     onClick={() =>
                       fileInputRef.current && fileInputRef.current.click()
                     }
-                    className="bg-cyan-500 p-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400"
+                    className="transition-transform duration-300 hover:scale-105 px-4 py-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400 min-w-0 rounded px-3 py-2 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white bg-black/35 from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl flex font-semibold gap-2 transition-all duration-300 transform shadow-lg items-center justify-center "
                     aria-label="Upload files"
                   >
                     <Upload className="w-6 h-6" />
@@ -396,11 +396,11 @@ const AvatarChatApp = () => {
 
                   <button
                     onClick={isRecording ? stopRecording : startRecording}
-                    className={`p-2 rounded transition-colors focus:outline focus:outline-2 ${
-                      isRecording
-                        ? "bg-red-600 hover:bg-red-700"
-                        : "bg-cyan-500 hover:bg-cyan-600"
-                    }`}
+                    className={
+                      isRecording 
+                      ? "transition-transform duration-300 hover:scale-105 p-2 rounded transition-colors focus:outline focus:outline-2 bg-yellow-600 hover:bg-yellow-700"
+                      : "transition-transform duration-300 hover:scale-105 px-6 py-3 rounded-xl flex font-semibold gap-2 transition-all duration-300 transform shadow-lg items-center justify-center hover:bg-cyan-600 focus:outline focus:outline-2 focus:outline-cyan-400 min-w-0 border border-gray-700 text-white bg-black/35 from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700"
+                    }
                     aria-label={
                       isRecording ? "Stop recording" : "Start recording"
                     }
@@ -427,7 +427,7 @@ const AvatarChatApp = () => {
                     aria-label="Message input"
                   />
 
-                  <button
+                  {/* <button
                     onClick={isRecording ? stopRecording : startRecording}
                     className={`p-2 rounded transition-colors focus:outline focus:outline-2 ${
                       isRecording
@@ -443,10 +443,11 @@ const AvatarChatApp = () => {
                     ) : (
                       <Mic className="w-6 h-6" />
                     )}
-                  </button>
+                  </button> */}
+
                   <button
                     onClick={sendMessage}
-                    className="bg-cyan-500 p-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400"
+                    className="px-4 py-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400 min-w-0 rounded px-3 py-2 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white bg-black/35 from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl flex font-semibold gap-2 transition-all duration-300 transform shadow-lg items-center justify-center "
                     aria-label="Send message"
                   >
                     <Send className="w-6 h-6" />
@@ -500,13 +501,13 @@ const AvatarChatApp = () => {
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400"
+                  className="transition-transform duration-300 hover:scale-105 px-4 py-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400 min-w-0 rounded px-3 py-2 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white bg-black/35 from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 transform shadow-lg"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={createAvatar}
-                  className="px-4 py-2 bg-cyan-600 rounded hover:bg-cyan-700 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400"
+                  className="transition-transform duration-300 hover:scale-105 px-4 py-2 rounded hover:bg-cyan-600 transition-colors focus:outline focus:outline-2 focus:outline-cyan-400 min-w-0 rounded px-3 py-2 border border-gray-700 focus:outline focus:outline-2 focus:outline-cyan-400 text-white bg-black/35 from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 transform shadow-lg"
                   disabled={!newAvatarName.trim()}
                 >
                   Create
