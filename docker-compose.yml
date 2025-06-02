@@ -1,11 +1,28 @@
-version: "3.8"
 
 services:
-  chat-app:
+  backend:
+    image: evdev3/chat-studio-api:latest
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
-    image: evdev3/chat-app:latest
+    container_name: chat-studio-api
     ports:
-      - "8080:80"
+      - "8765:8765"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  frontend:
+    image: evdev3/chat-studio-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: chat-studio-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    environment:
+      # example: pass backend URL to frontend if needed
+      - VITE_WEBSOCKET_URL=ws://backend:8765
     restart: unless-stopped

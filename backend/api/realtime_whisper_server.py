@@ -9,15 +9,17 @@ import torch
 import whisper
 import threading
 import soundfile as sf
+import json
+import torch
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 SAMPLE_RATE = 16000
 CHUNK_DURATION = 5  # seconds
 CHUNK_SIZE = SAMPLE_RATE * CHUNK_DURATION * 2  # 16-bit (2 bytes) mono audio
 
-model = whisper.load_model("base")
+model = whisper.load_model("base", device=device)
 clients = set()
-
-import json
 
 def transcribe_and_send(audio_data, websocket, loop):
     import soundfile as sf
