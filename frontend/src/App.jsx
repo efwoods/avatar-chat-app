@@ -252,6 +252,17 @@ const AvatarChatApp = () => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
+ 
+  function downsampleBuffer(buffer, inputSampleRate, outputSampleRate) {
+    const sampleRateRatio = inputSampleRate / outputSampleRate;
+    const newLength = Math.round(buffer.length / sampleRateRatio);
+    const result = new Int16Array(newLength);
+    for (let i = 0; i < newLength; i++) {
+      const sample = buffer[Math.floor(i * sampleRateRatio)];
+      result[i] = Math.max(-32768, Math.min(32767, sample * 0x7FFF));
+    }
+    return result;
+}
 
   const startTranscription = async () => {
     const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
@@ -266,16 +277,18 @@ const AvatarChatApp = () => {
       setIsTranscribing(true);
 
       // Audio setup
-      audioContextRef.current = new AudioContext({ sampleRate: 16000 });
+      audioContextRef.current = new AudioContext();
       mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
       sourceRef.current = audioContextRef.current.createMediaStreamSource(mediaStreamRef.current);
       processorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
 
       processorRef.current.onaudioprocess = (e) => {
         const input = e.inputBuffer.getChannelData(0);
-        const int16Data = convertFloat32ToInt16(input);
+        const downsampled = downsampleBuffer(input, audioContextRef.current.sampleRate, 16000);
+
+        // const int16Data = convertFloat32ToInt16(downsampled);
         if (ws.readyState === WebSocket.OPEN) {
-          ws.send(int16Data);
+          ws.send(downsampled);
         }
       };
 

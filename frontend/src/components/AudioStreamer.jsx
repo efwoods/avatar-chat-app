@@ -38,6 +38,8 @@ const AudioStreamer = ({ isTranscribing }) => {
             });
 
             document.dispatchEvent(transcriptionEvent);
+
+
             console.log("Received transcription:", transcript || "Listening...");
           } catch (error) {
             console.error("Error parsing WebSocket message:", error);
