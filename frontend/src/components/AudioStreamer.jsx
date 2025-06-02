@@ -24,10 +24,24 @@ const AudioStreamer = ({ isTranscribing }) => {
       };
 
       wsRef.current.onmessage = (event) => {
-        const transcript = event.data;
-        const transcriptionEvent = new CustomEvent("transcription", { detail: transcript });
-        document.dispatchEvent(transcriptionEvent);
-        console.log("Received transcription:", transcript);
+          try {
+            const data = JSON.parse(event.data);
+            const transcript = data.transcript.trim();
+
+            // Only dispatch actual transcript content or "Listening..." if empty
+            const transcriptionText = transcript ? transcript : "Listening...";
+            console.log("Received transcription:", transcriptionText);
+
+            console.log("Received transcription:", data)
+            const transcriptionEvent = new CustomEvent("transcription", { 
+              detail: transcriptionText 
+            });
+
+            document.dispatchEvent(transcriptionEvent);
+            console.log("Received transcription:", transcript || "Listening...");
+          } catch (error) {
+            console.error("Error parsing WebSocket message:", error);
+          }
       };
 
       mediaRecorderRef.current.start(250);
