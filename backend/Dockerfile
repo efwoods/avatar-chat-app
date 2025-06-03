@@ -1,18 +1,28 @@
-FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
+# ---- Stage 1: Builder ----
+FROM python:3.11-slim-bullseye AS builder
+WORKDIR /install
 
-WORKDIR /app
-
-# Install git for pip dependencies that require it
-RUN apt-get update && \
-    apt-get install -y ffmpeg git && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip \
+ && pip install --prefix=/install_deps --no-cache-dir -r requirements.txt \
+ && find /install_deps -type d -name "tests" -exec rm -rf {} + \
+ && find /install_deps -type d -name "__pycache__" -exec rm -rf {} + \
+ && rm -rf ~/.cache/pip
 
-COPY api/ /app/api/
+# ---- Stage 2: Runtime ----
+FROM python:3.11-slim-bullseye AS runtime
+WORKDIR /app
 
-EXPOSE 8765
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /install_deps /usr/local/
+COPY api/ ./api/
 
 CMD ["python", "api/realtime_whisper_server.py"]
