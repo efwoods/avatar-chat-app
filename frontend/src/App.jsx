@@ -44,7 +44,9 @@ const AvatarChatApp = () => {
     custom: true,
     neuralText: true,
     neuralImage: true,
-    neuralMotion: true
+    neuralMotion: true,
+    blueToothControl: true,
+    telepathy: true
   });
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
