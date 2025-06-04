@@ -6,9 +6,10 @@ from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from pyngrok import ngrok
 import uvicorn
-from .transcription import transcribe_audio
-from .config import settings
-from .monitoring import metrics
+from .service.transcription import transcribe_audio
+from .core.config import settings
+from .core.monitoring import metrics
+from .service.database import init_db
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -30,6 +31,8 @@ ngrok_url = None
 
 @app.on_event("startup")
 async def startup_event():
+    init_db()
+
     global ngrok_url
     try:
         ngrok.set_auth_token(settings.NGROK_AUTH_TOKEN)
@@ -51,33 +54,7 @@ async def health():
     metrics.health_requests.inc()
     return {"status": "healthy"}
 
-@app.get("/api/websocket-url")
-async def get_websocket_url():
-    metrics.websocket_url_requests.inc()
-    return {"websocket_url": ngrok_url or f"ws://localhost:{settings.WEBSOCKET_PORT}"}
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    metrics.active_websockets.inc()
-    try:
-        buffer = bytearray()
-        while True:
-            data = await websocket.receive_bytes()
-            buffer.extend(data)
-            chunk_size = settings.SAMPLE_RATE * settings.CHUNK_DURATION * 2  # 16-bit mono
-            while len(buffer) >= chunk_size:
-                chunk = buffer[:chunk_size]
-                buffer = buffer[chunk_size:]
-                result = await transcribe_audio(chunk)
-                await websocket.send_text(json.dumps(result))
-                metrics.transcriptions_processed.inc()
-    except Exception as e:
-        logger.error(f"WebSocket error: {e}")
-        metrics.websocket_errors.inc()
-    finally:
-        await websocket.close()
-        metrics.active_websockets.dec()
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=settings.FASTAPI_PORT)

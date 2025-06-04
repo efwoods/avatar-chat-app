@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     DEVICE: str = "cuda" if torch.cuda.is_available() else "cpu"
 
     class Config:
-        env_file = ".env"
+        env_file = ".env.api"
         env_file_encoding = "utf-8"
 
 settings = Settings()
