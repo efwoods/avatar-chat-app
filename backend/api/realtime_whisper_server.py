@@ -22,8 +22,6 @@ model = whisper.load_model("base", device=device)
 clients = set()
 
 def transcribe_and_send(audio_data, websocket, loop):
-    import soundfile as sf
-
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmpfile:
         with wave.open(tmpfile.name, "wb") as wf:
             wf.setnchannels(1)
