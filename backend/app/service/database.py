@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from models.user import UserLogin
+from ..db.models.user import UserLogin
 import psycopg2
 from passlib.context import CryptContext
 

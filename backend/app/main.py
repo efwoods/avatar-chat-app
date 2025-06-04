@@ -10,10 +10,10 @@ from .service.transcription import transcribe_audio
 from .core.config import settings
 from .core.monitoring import metrics
 from .service.database import init_db
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+from .api.db_routes import router as db_router
+from .api.transcription_routes import router as transcription_router
+from .core.config import logger
+from .core import state # type: ignore
 
 app = FastAPI(title="Real-Time Whisper Transcription Service")
 
@@ -26,6 +26,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
+app.include_router(db_router, prefix="/api/db", tags=["Database"])
+app.include_router(transcription_router, prefix="/api/transcription", tags=["Transcription"])
+
 # Store ngrok public URL
 ngrok_url = None
 
@@ -37,7 +41,7 @@ async def startup_event():
     try:
         ngrok.set_auth_token(settings.NGROK_AUTH_TOKEN)
         tunnel = ngrok.connect(settings.WEBSOCKET_PORT, "http", bind_tls=True)
-        ngrok_url = tunnel.public_url.replace("https", "wss")
+        state.ngrok_url = tunnel.public_url.replace("https", "wss")
         logger.info(f"Ngrok WebSocket URL: {ngrok_url}")
         metrics.ngrok_connections.inc()
     except Exception as e:

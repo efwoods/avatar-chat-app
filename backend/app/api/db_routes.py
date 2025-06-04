@@ -1,4 +1,14 @@
-@app.post("/api/login")
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from ..db.models.user import UserLogin
+from fastapi import APIRouter, HTTPException
+from ..service.database import get_db_connection, pwd_context
+
+
+
+router = APIRouter()
+
+@router.post("/login")
 async def login(user: UserLogin):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -11,3 +21,4 @@ async def login(user: UserLogin):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     return {"message": "Login successful"}
+

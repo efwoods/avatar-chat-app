@@ -1,10 +1,21 @@
-@app.get("/api/websocket-url")
+from app.core.config import settings
+from fastapi import APIRouter
+from fastapi import WebSocket
+from app.core.monitoring import metrics
+from app.service.transcription import transcribe_audio
+from app.core.config import logger
+from app.core import state # type: ignore
+import json
+
+router = APIRouter()
+
+@router.get("/websocket-url")
 async def get_websocket_url():
     metrics.websocket_url_requests.inc()
-    return {"websocket_url": ngrok_url or f"ws://localhost:{settings.WEBSOCKET_PORT}"}
+    return {"websocket_url": state.ngrok_url or f"ws://localhost:{settings.WEBSOCKET_PORT}"}
 
 
-@app.websocket("/ws")
+@router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     metrics.active_websockets.inc()
