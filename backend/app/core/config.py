@@ -7,15 +7,19 @@ import os
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-load_dotenv(dotenv_path=Path(__file__).resolve().parents[3] / ".env.local")
-
 class Settings(BaseSettings):
-    NGROK_AUTH_TOKEN: str 
-    FASTAPI_PORT: int = 8765
-    WEBSOCKET_PORT: int = 8765
-    SAMPLE_RATE: int = 16000
-    CHUNK_DURATION: int = 5  # seconds
-    DEVICE: str = "cuda" if torch.cuda.is_available() else "cpu"
+    POSTGRES_DB: str = "mvp_db"
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "password"
+    POSTGRES_HOST: str = "postgres_db"
+    POSTGRES_PORT: int = 5432
 
-settings = Settings() # type: ignore
+    MONGO_HOST: str = "mongo_db"
+    MONGO_PORT: int = 27017
+    MONGO_DB: str = "mvp_media"
+
+    FASTAPI_PORT: int = 8765
+    class Config:
+        env_file = ".env"
+
+settings = Settings() 

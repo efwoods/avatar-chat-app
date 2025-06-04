@@ -6,14 +6,21 @@ from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from pyngrok import ngrok
 import uvicorn
-from .service.transcription import transcribe_audio
-from .core.config import settings
-from .core.monitoring import metrics
-from .service.database import init_db
-from .api.db_routes import router as db_router
-from .api.transcription_routes import router as transcription_router
-from .core.config import logger
-from .core import state # type: ignore
+
+# Configurations & Metrics
+from core import state 
+from core.config import settings
+from core.monitoring import metrics
+from core.config import logger
+
+# API Routes
+from api.db_routes import router as db_router
+from api.transcription_routes import router as transcription_router
+from api.media_routes import router as media_router
+
+# Services
+from service.database import db, init_db
+from service.transcription import transcribe_audio
 
 app = FastAPI(title="Real-Time Whisper Transcription Service")
 
@@ -29,13 +36,15 @@ app.add_middleware(
 # Include routers
 app.include_router(db_router, prefix="/api/db", tags=["Database"])
 app.include_router(transcription_router, prefix="/api/transcription", tags=["Transcription"])
+app.include_router(media_router, prefix="/api/media", tags=["Media"])
 
 # Store ngrok public URL
 ngrok_url = None
 
 @app.on_event("startup")
 async def startup_event():
-    init_db()
+    await db.connect()
+    await db.init_postgres()
 
     global ngrok_url
     try:
@@ -52,6 +61,7 @@ async def startup_event():
 async def shutdown_event():
     ngrok.disconnect(ngrok_url)
     logger.info("Ngrok tunnel disconnected")
+    await db.disconnect()
 
 @app.get("/api/health")
 async def health():

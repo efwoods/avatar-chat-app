@@ -1,1 +1,0 @@
-docker run -d -p 8765:8765 --env-file .env.api --name neural-nexus-api evdev3/neural-nexus-api:test

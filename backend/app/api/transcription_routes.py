@@ -4,7 +4,7 @@ from fastapi import WebSocket
 from app.core.monitoring import metrics
 from app.service.transcription import transcribe_audio
 from app.core.config import logger
-from app.core import state # type: ignore
+from app.core import state 
 import json
 
 router = APIRouter()

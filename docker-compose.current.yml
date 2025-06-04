@@ -1,33 +1,66 @@
+version: "3.9"
+
 services:
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-    depends_on:
-      - backend
   backend:
     build:
       context: .
-      dockerfile: Dockerfile.backend
+      dockerfile: backend/Dockerfile.backend
+    container_name: backend_api
     ports:
-      - "8000:8000"
-    volumes:
-      - ./backend:/app
-    depends_on:
-      - db
-  db:
-    image: postgres:14
+      - "8765:8765"
     environment:
+      - POSTGRES_DB=mvp_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=postgres_db
+      - MONGO_HOST=mongo_db
+      - MONGO_PORT=27017
+    depends_on:
+      - postgres_db
+      - mongo_db
+    volumes:
+      - ./backend/app:/app/app  # For live code reload if needed (optional)
+    networks:
+      - backend_network
+
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile.frontend
+  #   container_name: frontend_app
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - backend_network
+
+  mongo_db:
+    image: mongo:6.0
+    container_name: mongo_db
+    restart: unless-stopped
+    volumes:
+      - /media/linux-pc/DB/mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - backend_network
+
+  postgres_db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mvp_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: mvp_db
     volumes:
-      - /media/linux-pc/Stargate/postgres_data:/var/lib/postgresql/data
+      - /media/linux-pc/DB/postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-volumes:
-  postgres_data:
+    networks:
+      - backend_network
+
+networks:
+  backend_network:
+    driver: bridge
