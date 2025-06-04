@@ -4,7 +4,7 @@ import wave
 import soundfile as sf
 import torch
 import whisper
-from .config import settings
+from ..core.config import settings
 import logging
 
 logger = logging.getLogger(__name__)
