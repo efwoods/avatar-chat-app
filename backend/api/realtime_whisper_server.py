@@ -11,12 +11,33 @@ import threading
 import soundfile as sf
 import json
 import torch
+import logging
+from dotenv import load_dotenv
+from pyngrok import ngrok
+import asyncio
+import nest_asyncio
+import os
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 SAMPLE_RATE = 16000
 CHUNK_DURATION = 5  # seconds
 CHUNK_SIZE = SAMPLE_RATE * CHUNK_DURATION * 2  # 16-bit (2 bytes) mono audio
+
+# Load environment variables
+load_dotenv()
+nest_asyncio.apply()
+
+ngrok_token = os.getenv("NGROK_AUTH_TOKEN")
+if not ngrok_token:
+    raise ValueError("NGROK_AUTH_TOKEN environment variable is missing")
+
+ngrok.set_auth_token(ngrok_token)
+
 
 model = whisper.load_model("base", device=device)
 clients = set()
@@ -90,7 +111,10 @@ async def handle_connection(websocket):
 
 async def main():
     print("[*] Server started on ws://0.0.0.0:8765")
+
     async with websockets.serve(handle_connection, "0.0.0.0", 8765):
+        public_url = ngrok.connect("8765", "http", bind_tls=True).public_url
+        logger.info(f"Public WebSocket URL: {public_url.replace('https', 'wss')}")
         await asyncio.Future()  # Run forever
 
 if __name__ == "__main__":
