@@ -5,3 +5,7 @@ openai-whisper
 websockets
 numpy
 soundfile
+python-dotenv
+pyngrok
+asyncio
+nest_asyncio
