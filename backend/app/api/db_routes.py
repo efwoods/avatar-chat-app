@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from ..db.models.user import UserLogin
+from app.db.models.user import UserLogin
 from fastapi import APIRouter, HTTPException
-from ..service.database import get_db_connection, pwd_context
+from app.service.database import get_db_connection, pwd_context
 from core.config import settings
+from app.service.database import db
 
 router = APIRouter()
 

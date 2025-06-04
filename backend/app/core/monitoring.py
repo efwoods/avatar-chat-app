@@ -1,12 +1,25 @@
-from prometheus_client import Counter, Gauge
+from prometheus_client import Counter, Gauge, REGISTRY
 
-health_requests = Counter("health_requests_total", "Total health check requests")
-websocket_url_requests = Counter("websocket_url_requests_total", "Total WebSocket URL requests")
-active_websockets = Gauge("active_websockets", "Number of active WebSocket connections")
-transcriptions_processed = Counter("transcriptions_processed_total", "Total transcriptions processed")
-ngrok_connections = Counter("ngrok_connections_total", "Total ngrok connections established")
-ngrok_errors = Counter("ngrok_errors_total", "Total ngrok connection errors")
-websocket_errors = Counter("websocket_errors_total", "Total WebSocket errors")
+def get_or_create_metric(name, description, metric_type="counter"):
+    registry = REGISTRY._names_to_collectors
+    if name in registry:
+        return registry[name]
+    if metric_type == "counter":
+        return Counter(name, description)
+    elif metric_type == "gauge":
+        return Gauge(name, description)
+    else:
+        raise ValueError(f"Unsupported metric type: {metric_type}")
+
+
+health_requests = get_or_create_metric("health_requests_total", "Total health check requests")
+websocket_url_requests = get_or_create_metric("websocket_url_requests_total", "Total WebSocket URL requests")
+active_websockets = get_or_create_metric("active_websockets", "Number of active WebSocket connections", "gauge")
+transcriptions_processed = get_or_create_metric("transcriptions_processed_total", "Total transcriptions processed")
+ngrok_connections = get_or_create_metric("ngrok_connections_total", "Total ngrok connections established")
+ngrok_errors = get_or_create_metric("ngrok_errors_total", "Total ngrok connection errors")
+websocket_errors = get_or_create_metric("websocket_errors_total", "Total WebSocket errors")
+
 
 class Metrics:
     def __init__(self):

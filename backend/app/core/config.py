@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     MONGO_DB: str = "mvp_media"
 
     FASTAPI_PORT: int = 8765
+    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     class Config:
         env_file = ".env"
 

@@ -1,12 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from ..db.models.user import UserLogin
+from app.db.models.user import UserLogin
 import psycopg2
 from passlib.context import CryptContext
 
 import asyncpg
 from motor.motor_asyncio import AsyncIOMotorClient
-from backend.app.core.config import settings
+from app.core.config import settings
 
 
 # Database connection
@@ -55,7 +55,7 @@ class Database:
             password=settings.POSTGRES_PASSWORD,
             database=settings.POSTGRES_DB,
             host=settings.POSTGRES_HOST,
-            port=settings.POSTGRES_PORT
+            port=settings.POSTGRES_PORT,
             min_size=1,
             max_size=10
         )
@@ -79,7 +79,6 @@ class Database:
             hashed_password = pwd_context.hash("testpassword")
             await conn.execute(
                 "INSERT INTO users (email, password) VALUES ($1, $2) ON CONFLICT (email) DO NOTHING;",
-                ("test@example.com", hashed_password)
-            )
+                "test@example.com", hashed_password)
 
 db = Database()

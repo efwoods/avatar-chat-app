@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from backend.app.service.database import db
+from app.service.database import db
 
 router = APIRouter()
 
@@ -18,4 +18,4 @@ async def upload_file(file: UploadFile = File(...)):
         # Return the ID of the inserted document
         return {"id": str(result.inserted_id)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))"
+        raise HTTPException(status_code=500, detail=str(e))

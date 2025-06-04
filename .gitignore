@@ -1,5 +1,10 @@
+
+**/__pycache__/**
+**/node_modules/**
 **/docker-compose*.yml
 **/.env
+.vscode/
+
 ROADMAP.md
 *.pem
 # Logs
