@@ -58,12 +58,6 @@ async def logout(token: str = Depends(oauth2_scheme)):
 async def profile(current_user=Depends(get_current_user)):
     return {"id": current_user["id"], "email": current_user["email"]}
 
-@router.get("/test-db")
-async def test_db():
-    if db.postgres_pool:
-        return {"status": "postgres pool exists"}
-    return {"status": "postgres pool is None"}
-
 
 @router.get("/health")
 async def health():
