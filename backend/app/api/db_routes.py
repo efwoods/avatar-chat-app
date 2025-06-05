@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends
 from app.db.models.user import UserLogin, UserCreate
 from fastapi import APIRouter, HTTPException
@@ -63,7 +64,7 @@ async def logout(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 @router.get("/current_user")
-async def get_me(current_user: asyncpg.Record = Depends(get_current_user)):
+async def get_current_user(current_user: asyncpg.Record = Depends(get_current_user)):
     return {
         "id": str(current_user["id"]),
         "email": current_user["email"]
@@ -113,6 +114,7 @@ async def select_avatar(avatar_id: int, current_user=Depends(get_current_user)):
 
     return {"avatar_id": avatar_id, "messages": messages}
 
+# Send Message
 @router.post("/avatars/message")
 async def post_message(msg: Message, current_user=Depends(get_current_user)):
     redis_client = await get_redis_client()

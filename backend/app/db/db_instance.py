@@ -3,6 +3,7 @@ import asyncpg
 from app.core.monitoring import metrics
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.db.database import db
+from app.db.sql import init_schema_postgres
 
 async def init_postgres():
     try:
@@ -15,8 +16,13 @@ async def init_postgres():
             min_size=1,
             max_size=10
         )
+
         logger.info("PostgreSQL pool initialized.")
         metrics.db_connection_status.labels(database="postgres").set(1)
+
+        async with db.postgres_pool.acquire() as conn:
+            await conn.execute(init_schema_postgres)
+            logger.info("PostgreSQL schema initialized.")
     except Exception as e:
         logger.error(f"Failed to initialize PostgreSQL pool: {e}")
         db.postgres_pool = None
