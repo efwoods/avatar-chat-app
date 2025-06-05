@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends
 from app.db.models.user import UserLogin, UserCreate
 from fastapi import APIRouter, HTTPException
 from core.config import settings
-from app.core.db_instance import db
 from core.config import logger
 from app.db.models.user import Token
 from app.service.auth import create_access_token, get_current_user, oauth2_scheme
@@ -12,6 +11,7 @@ from app.core.monitoring import metrics
 from app.core.redis_instance import get_redis_client
 import jwt
 from app.core.monitoring import metrics
+from app.db.database import db
 
 router = APIRouter()
 
@@ -58,23 +58,33 @@ async def logout(token: str = Depends(oauth2_scheme)):
 async def profile(current_user=Depends(get_current_user)):
     return {"id": current_user["id"], "email": current_user["email"]}
 
+@router.get("/test-db")
+async def test_db():
+    if db.postgres_pool:
+        return {"status": "postgres pool exists"}
+    return {"status": "postgres pool is None"}
+
+
 @router.get("/health")
 async def health():
     metrics.health_requests.inc()
-    
-    # Check PostgreSQL connection
+    logger.info(f"[health] Database instance id: {id(db)}, pool={db.postgres_pool}, mongo={db.mongo_client}")
+
     postgres_ok = False
     if db.postgres_pool:
+        logger.info("Postgres pool is initialized, attempting test query")
         try:
             async with db.postgres_pool.acquire() as conn:
-                await conn.execute("SELECT 1")
+                result = await conn.execute("SELECT 1")
+                logger.info(f"Postgres test query result: {result}")
                 postgres_ok = True
         except Exception as e:
-            logger.error(f"PostgreSQL health check failed: {e}")
-    
+            logger.error(f"PostgreSQL health check failed: {type(e).__name__}: {e}")
+    else:
+        logger.error("Postgres pool is None")
     # Check MongoDB connection
     mongo_ok = False
-    if db.mongo_client and db.mongo_db:
+    if db.mongo_client is not None and db.mongo_db is not None:
         try:
             await db.mongo_client.admin.command("ping")
             mongo_ok = True

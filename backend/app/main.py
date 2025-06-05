@@ -10,8 +10,8 @@ from core import state
 from core.config import settings
 from core.monitoring import metrics
 from core.config import logger
-from core.db_instance import db
 from core import redis_instance 
+from app.db.db_instance import db_connect, db_disconnect
 
 # API Routes
 from api.db_routes import router as db_router
@@ -39,8 +39,7 @@ app.include_router(media_router, prefix="/media", tags=["Media"])
 # Store ngrok public URL
 @app.on_event("startup")
 async def startup_event():
-    await db.connect()
-    await db.init_postgres()
+    await db_connect()
     await get_redis_client()
     try:
         ngrok.set_auth_token(settings.NGROK_AUTH_TOKEN)
@@ -67,7 +66,7 @@ async def startup_event():
 async def shutdown_event():
     ngrok.disconnect(state.ngrok_url)
     logger.info("Ngrok tunnel disconnected")
-    await db.disconnect()
+    await db_disconnect()
     logger.info("Database connection closed")
     if redis_instance.redis_client:
         await redis_instance.redis_client.close()

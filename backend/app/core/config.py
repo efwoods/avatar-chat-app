@@ -8,19 +8,19 @@ logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     # PostgreSQL
-    POSTGRES_DB: str = "mvp_db"
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "password"
-    POSTGRES_HOST: str = "localhost"
+    POSTGRES_DB: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_HOST: str  # no default
     POSTGRES_PORT: int = 5432
 
     # MongoDB
-    MONGO_HOST: str = "localhost"
+    MONGO_DB: str
+    MONGO_HOST: str
     MONGO_PORT: int = 27017
-    MONGO_DB: str = "mvp_media"
 
     # Redis
-    REDIS_HOST: str = "localhost"
+    REDIS_HOST: str
     REDIS_PORT: int = 6379
     REDIS_PASSWORD: str
 
@@ -34,10 +34,11 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    # Torch Device
+    # Torch
     DEVICE: str = "cuda" if torch.cuda.is_available() else "cpu"
 
     class Config:
-        env_file = ".env"  # Local development only
+        env_file = ".env"
+
 
 settings = Settings()
