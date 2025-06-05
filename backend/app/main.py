@@ -12,14 +12,12 @@ from core import state
 from core.config import settings
 from core.monitoring import metrics
 from core.config import logger
+from core.db_instance import db
 
 # API Routes
 from api.db_routes import router as db_router
 from api.transcription_routes import router as transcription_router
 from api.media_routes import router as media_router
-
-# Services
-from service.database import db
 
 app = FastAPI(title="Real-Time Whisper Transcription Service")
 
@@ -38,7 +36,6 @@ app.include_router(transcription_router, prefix="/api/transcription", tags=["Tra
 app.include_router(media_router, prefix="/api/media", tags=["Media"])
 
 # Store ngrok public URL
-
 @app.on_event("startup")
 async def startup_event():
     await db.connect()

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.service.database import db
+from app.core.db_instance import db
 
 router = APIRouter()
 

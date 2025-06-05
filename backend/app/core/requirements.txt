@@ -19,3 +19,4 @@ SQLAlchemy
 asyncpg
 motor
 python-multipart
+jwt
