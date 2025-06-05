@@ -7,7 +7,7 @@ from app.db.database import db
 
 # Instance-level shared components
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/db/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
