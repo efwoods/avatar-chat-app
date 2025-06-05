@@ -12,6 +12,10 @@ from app.core.redis_instance import get_redis_client
 import jwt
 from app.core.monitoring import metrics
 from app.db.database import db
+from app.db.models.avatar import AvatarCreate, Message
+from bson.objectid import ObjectId
+import json
+
 
 router = APIRouter()
 
@@ -64,6 +68,70 @@ async def get_me(current_user: asyncpg.Record = Depends(get_current_user)):
         "id": str(current_user["id"]),
         "email": current_user["email"]
     }
+
+# Avatars
+@router.post("/avatars/create")
+async def create_avatar(
+    avatar: AvatarCreate,
+    current_user=Depends(get_current_user)
+):
+    async with db.postgres_pool.acquire() as conn:
+        avatar_id = await conn.fetchval(
+            "INSERT INTO avatars (user_id, name, description) VALUES ($1, $2, $3) RETURNING id",
+            current_user["id"], avatar.name, avatar.description
+        )
+    return {"avatar_id": avatar_id}
+
+@router.get("/avatars")
+async def get_avatars(current_user=Depends(get_current_user)):
+    async with db.postgres_pool.acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT id, name, description, created_at FROM avatars WHERE user_id = $1",
+            current_user["id"]
+        )
+    return [dict(row) for row in rows]
+
+# Load from Mongodb -> Redis
+@router.get("/avatars/{avatar_id}/select")
+async def select_avatar(avatar_id: int, current_user=Depends(get_current_user)):
+    redis_client = await get_redis_client()
+    redis_key = f"avatar:{avatar_id}:messages"
+    
+    cached = await redis_client.get(redis_key)
+    if cached:
+        messages = json.loads(cached)
+    else:
+        collection = db.mongo_db["avatar_conversations"]
+        doc = await collection.find_one({
+            "avatar_id": avatar_id,
+            "user_id": str(current_user["id"])
+        })
+        if not doc:
+            raise HTTPException(status_code=404, detail="No conversation found for avatar")
+        messages = doc.get("messages", [])
+        await redis_client.set(redis_key, json.dumps(messages))
+
+    return {"avatar_id": avatar_id, "messages": messages}
+
+@router.post("/avatars/message")
+async def post_message(msg: Message, current_user=Depends(get_current_user)):
+    redis_client = await get_redis_client()
+    redis_key = f"avatar:{msg.avatar_id}:messages"
+
+    cached = await redis_client.get(redis_key)
+    messages = json.loads(cached) if cached else []
+
+    messages.append({"role": msg.role, "content": msg.content})
+    await redis_client.set(redis_key, json.dumps(messages))
+
+    # Persist to MongoDB
+    collection = db.mongo_db["avatar_conversations"]
+    await collection.update_one(
+        {"avatar_id": msg.avatar_id, "user_id": str(current_user["id"])},
+        {"$set": {"last_updated": datetime.utcnow()}, "$push": {"messages": {"role": msg.role, "content": msg.content}}},
+        upsert=True
+    )
+    return {"status": "message stored"}
 
 @router.get("/db/health")
 async def health():
