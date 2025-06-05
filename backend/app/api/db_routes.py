@@ -2,12 +2,14 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db.models.user import UserLogin, UserCreate
 from fastapi import APIRouter, HTTPException
-from app.service.database import pwd_context, get_current_user, create_access_token
 from core.config import settings
 from app.core.db_instance import db
 from core.config import logger
 from app.db.models.user import Token
+from app.service.auth import create_access_token, get_current_user
 import asyncpg
+from app.core.security import pwd_context
+from app.core.monitoring import metrics
 
 router = APIRouter()
 
@@ -43,3 +45,13 @@ async def logout():
 async def profile(current_user=Depends(get_current_user)):
     return {"id": current_user["id"], "email": current_user["email"]}
 
+@router.get("/health")
+async def health():
+    metrics.health_requests.inc()
+    postgres_ok = db.postgres_pool is not None
+    mongo_ok = db.mongo_client is not None and db.mongo_db is not None
+    return {
+        "status": "healthy" if postgres_ok and mongo_ok else "degraded",
+        "postgres": postgres_ok,
+        "mongodb": mongo_ok
+    }

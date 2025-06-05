@@ -20,3 +20,4 @@ asyncpg
 motor
 python-multipart
 jwt
+pydantic[email]

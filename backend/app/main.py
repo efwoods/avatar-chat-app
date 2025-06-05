@@ -1,11 +1,9 @@
-import asyncio
-import json
-import logging
-import os
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pyngrok import ngrok
 import uvicorn
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from fastapi.responses import Response
 
 # Configurations & Metrics
 from core import state 
@@ -31,9 +29,9 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(db_router, prefix="/api/db", tags=["Database"])
-app.include_router(transcription_router, prefix="/api/transcription", tags=["Transcription"])
-app.include_router(media_router, prefix="/api/media", tags=["Media"])
+app.include_router(db_router, prefix="/db", tags=["Database"])
+app.include_router(transcription_router, prefix="/transcription", tags=["Transcription"])
+app.include_router(media_router, prefix="/media", tags=["Media"])
 
 # Store ngrok public URL
 @app.on_event("startup")
@@ -44,9 +42,20 @@ async def startup_event():
     try:
         ngrok.set_auth_token(settings.NGROK_AUTH_TOKEN)
         tunnel = ngrok.connect(settings.WEBSOCKET_PORT, "http", bind_tls=True)
-        state.ngrok_url = tunnel.public_url.replace("https", "wss")
-        logger.info(f"Ngrok WebSocket URL: {state.ngrok_url}")
-        metrics.ngrok_connections.inc()
+        # Explicitly await ngrok URL confirmation (if using async pyngrok wrapper)
+        import time
+        timeout = 10
+        while not tunnel.public_url and timeout > 0:
+            time.sleep(0.5)
+            timeout -= 0.5
+        
+        if tunnel.public_url:
+            state.ngrok_url = tunnel.public_url.replace("https", "wss")
+            logger.info(f"Ngrok WebSocket URL: {state.ngrok_url}")
+            metrics.ngrok_connections.inc()
+        else:
+            raise RuntimeError("Ngrok tunnel failed to get public_url.")
+
     except Exception as e:
         logger.error(f"Failed to start ngrok: {e}")
         metrics.ngrok_errors.inc()
@@ -57,10 +66,14 @@ async def shutdown_event():
     logger.info("Ngrok tunnel disconnected")
     await db.disconnect()
 
-@app.get("/api/health")
+@app.get("/health")
 async def health():
     metrics.health_requests.inc()
     return {"status": "healthy"}
+
+@app.get("/metrics")
+def metrics_endpoint():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=settings.FASTAPI_PORT)

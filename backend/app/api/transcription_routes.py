@@ -14,7 +14,6 @@ async def get_websocket_url():
     metrics.websocket_url_requests.inc()
     return {"websocket_url": state.ngrok_url or f"ws://localhost:{settings.WEBSOCKET_PORT}"}
 
-
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
