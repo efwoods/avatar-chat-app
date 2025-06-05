@@ -2,7 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import asyncpg
 from app.core.config import settings, logger
 from app.core.security import pwd_context
-
+from app.core.monitoring import metrics
 class Database:
     def __init__(self):
         self.postgres_pool = None
@@ -21,6 +21,7 @@ class Database:
                 max_size=10
             )
             logger.info("PostgreSQL pool initialized.")
+            metrics.db_connection_status.labels(database="postgres").set(1)
         except Exception as e:
             logger.error(f"Failed to initialize PostgreSQL pool: {e}")
             self.postgres_pool = None
@@ -29,6 +30,7 @@ class Database:
             self.mongo_db = self.mongo_client[settings.MONGO_DB]
             await self.mongo_client.admin.command("ping")
             logger.info("MongoDB client initialized.")
+            metrics.db_connection_status.labels(database="mongodb").set(1)
         except Exception as e:
             logger.error(f"Failed to initialize MongoDB: {e}")
             self.mongo_client = None
@@ -37,8 +39,11 @@ class Database:
     async def disconnect(self):
         if self.postgres_pool:
             await self.postgres_pool.close()
+            metrics.db_connection_status.labels(database="postgres").set(0)
         if self.mongo_client:
             self.mongo_client.close()
+        metrics.db_connection_status.labels(database="mongodb").set(0)
+        
 
     async def init_postgres(self):
         async with self.postgres_pool.acquire() as conn:

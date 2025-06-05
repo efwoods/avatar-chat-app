@@ -21,3 +21,4 @@ motor
 python-multipart
 jwt
 pydantic[email]
+redis

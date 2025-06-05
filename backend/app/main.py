@@ -11,11 +11,14 @@ from core.config import settings
 from core.monitoring import metrics
 from core.config import logger
 from core.db_instance import db
+from core import redis_instance 
 
 # API Routes
 from api.db_routes import router as db_router
 from api.transcription_routes import router as transcription_router
 from api.media_routes import router as media_router
+
+from app.core.redis_instance import get_redis_client
 
 app = FastAPI(title="Real-Time Whisper Transcription Service")
 
@@ -38,7 +41,7 @@ app.include_router(media_router, prefix="/media", tags=["Media"])
 async def startup_event():
     await db.connect()
     await db.init_postgres()
-
+    await get_redis_client()
     try:
         ngrok.set_auth_token(settings.NGROK_AUTH_TOKEN)
         tunnel = ngrok.connect(settings.WEBSOCKET_PORT, "http", bind_tls=True)
@@ -65,6 +68,11 @@ async def shutdown_event():
     ngrok.disconnect(state.ngrok_url)
     logger.info("Ngrok tunnel disconnected")
     await db.disconnect()
+    logger.info("Database connection closed")
+    if redis_instance.redis_client:
+        await redis_instance.redis_client.close()
+        logger.info("Redis connection closed")
+        metrics.db_connection_status.labels(database="redis").set(0)
 
 @app.get("/health")
 async def health():

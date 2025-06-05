@@ -1,13 +1,17 @@
 from prometheus_client import Counter, Gauge, REGISTRY
 
-def get_or_create_metric(name, description, metric_type="counter"):
+def get_or_create_metric(name, description, metric_type="counter", labelnames="None"):
     registry = REGISTRY._names_to_collectors
+    labelnames = labelnames or []
     if name in registry:
         return registry[name]
     if metric_type == "counter":
         return Counter(name, description)
     elif metric_type == "gauge":
-        return Gauge(name, description)
+        if labelnames == "None":
+            return Gauge(name, description)
+        else:
+            return Gauge(name, description, labelnames=labelnames)
     else:
         raise ValueError(f"Unsupported metric type: {metric_type}")
 
@@ -19,7 +23,7 @@ transcriptions_processed = get_or_create_metric("transcriptions_processed_total"
 ngrok_connections = get_or_create_metric("ngrok_connections_total", "Total ngrok connections established")
 ngrok_errors = get_or_create_metric("ngrok_errors_total", "Total ngrok connection errors")
 websocket_errors = get_or_create_metric("websocket_errors_total", "Total WebSocket errors")
-
+db_connection_status = get_or_create_metric("db_connection_status", "Database connection status (1=up, 0=down)", "gauge",  labelnames=["database"])
 
 class Metrics:
     def __init__(self):
@@ -30,5 +34,6 @@ class Metrics:
         self.ngrok_connections = ngrok_connections
         self.ngrok_errors = ngrok_errors
         self.websocket_errors = websocket_errors
+        self.db_connection_status = db_connection_status
 
 metrics = Metrics()

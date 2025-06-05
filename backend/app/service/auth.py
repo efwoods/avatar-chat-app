@@ -26,6 +26,7 @@ async def get_current_user(self, token: str = Depends(oauth2_scheme)):
         if user is None:
             raise credentials_exception
         return user
+    
 def create_access_token(self, data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
