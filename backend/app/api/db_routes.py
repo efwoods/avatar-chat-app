@@ -58,10 +58,12 @@ async def logout(token: str = Depends(oauth2_scheme)):
     except jwt.PyJWTError as e:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-@router.get("/profile")
-async def profile(current_user=Depends(get_current_user)):
-    return {"id": current_user["id"], "email": current_user["email"]}
-
+@router.get("/current_user")
+async def get_me(current_user: asyncpg.Record = Depends(get_current_user)):
+    return {
+        "id": str(current_user["id"]),
+        "email": current_user["email"]
+    }
 
 @router.get("/db/health")
 async def health():
