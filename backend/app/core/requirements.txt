@@ -19,6 +19,6 @@ SQLAlchemy
 asyncpg
 motor
 python-multipart
-jwt
+PyJWT
 pydantic[email]
 redis

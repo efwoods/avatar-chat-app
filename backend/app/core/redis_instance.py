@@ -29,3 +29,15 @@ async def get_redis_client():
                 metrics.db_connection_status.labels(database="redis").set(0)
                 _redis_client = None
     return _redis_client
+
+async def close_redis_client():
+    global _redis_client
+    if _redis_client is not None:
+        try:
+            await _redis_client.close()        # Close connection pool
+            await _redis_client.wait_closed()  # Wait for connections to close
+            logger.info("Redis client closed.")
+            _redis_client = None
+            metrics.db_connection_status.labels(database="redis").set(0)
+        except Exception as e:
+            logger.error(f"Failed to close Redis client: {e}")

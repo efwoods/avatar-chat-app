@@ -3,12 +3,13 @@ from fastapi import HTTPException, status, Depends
 from app.core.config import settings
 import jwt
 from datetime import datetime, timedelta
+from app.db.database import db
 
 # Instance-level shared components
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/db/login")
 
-async def get_current_user(self, token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -21,13 +22,13 @@ async def get_current_user(self, token: str = Depends(oauth2_scheme)):
             raise credentials_exception
     except (jwt.PyJWTError, ValueError):
         raise credentials_exception
-    async with self.postgres_pool.acquire() as conn:
+    async with db.postgres_pool.acquire() as conn:
         user = await conn.fetchrow("SELECT id, email FROM users WHERE id = $1", user_id)
         if user is None:
             raise credentials_exception
         return user
     
-def create_access_token(self, data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})

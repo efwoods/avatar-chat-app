@@ -4,7 +4,7 @@ from fastapi import WebSocket
 from app.core.monitoring import metrics
 from app.service.transcription import transcribe_audio
 from app.core.config import logger
-from app.core import state 
+from app.core.ngrok_instance import get_ngrok_client
 import json
 
 router = APIRouter()
@@ -12,7 +12,9 @@ router = APIRouter()
 @router.get("/websocket-url")
 async def get_websocket_url():
     metrics.websocket_url_requests.inc()
-    return {"websocket_url": state.ngrok_url or f"ws://localhost:{settings.WEBSOCKET_PORT}"}
+    ngrok_state = await get_ngrok_client()
+    logger.info(f"Websocket URL requested: {ngrok_state}")
+    return {"websocket_url": ngrok_state or f"ws://localhost:{settings.WEBSOCKET_PORT}"}
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

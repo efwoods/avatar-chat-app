@@ -29,24 +29,28 @@ async def signup(user: UserCreate):
         except asyncpg.UniqueViolationError:
             raise HTTPException(status_code=400, detail="Email already registered")
 
+from fastapi.security import OAuth2PasswordRequestForm
+
 @router.post("/login", response_model=Token)
-async def login(user: UserLogin):
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     async with db.postgres_pool.acquire() as conn:
-        row = await conn.fetchrow("SELECT id, password FROM users WHERE email = $1", user.email)
-        if not row or not pwd_context.verify(user.password, row["password"]):
+        row = await conn.fetchrow("SELECT id, password FROM users WHERE email = $1", form_data.username)
+        if not row or not pwd_context.verify(form_data.password, row["password"]):
             raise HTTPException(status_code=401, detail="Invalid email or password")
         access_token = create_access_token(data={"sub": str(row["id"])})
-        redis_client = get_redis_client()
+        redis_client = await get_redis_client()
         await redis_client.setex(f"token:{access_token}", settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60, str(row["id"]))
         return {"access_token": access_token, "token_type": "bearer"}
+
 
 @router.post("/logout")
 async def logout(token: str = Depends(oauth2_scheme)):
     # Client should delete token; no server state to clear with JWT
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        logger.debug(f"Logout payload: {payload}")
         user_id = payload.get("sub")
-        redis_client = get_redis_client()
+        redis_client = await get_redis_client()
         await redis_client.delete(f"token:{token}")
         return {"message": "Logout successful. Please delete the token on client side."}
     except jwt.ExpiredSignatureError:
@@ -59,7 +63,7 @@ async def profile(current_user=Depends(get_current_user)):
     return {"id": current_user["id"], "email": current_user["email"]}
 
 
-@router.get("/health")
+@router.get("/db/health")
 async def health():
     metrics.health_requests.inc()
     logger.info(f"[health] Database instance id: {id(db)}, pool={db.postgres_pool}, mongo={db.mongo_client}")
