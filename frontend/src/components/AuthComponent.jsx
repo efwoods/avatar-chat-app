@@ -41,18 +41,18 @@ const AuthComponent = () => {
       console.log("access_token:", access_token);
 
 
-      // // Step 2: Fetch profile data using the access token
-      // const profileResponse = await fetch(`${ngrokHttpsUrl}/profile`, {
-      //   method: "GET",
-      //   headers: {
-      //     Authorization: `Bearer ${access_token}`,
-      //     Accept: "application/json",
-      //   },
-      // });
+      // Step 2: Fetch profile data using the access token
+      const profileResponse = await fetch(`${ngrokHttpsUrl}/profile`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+          Accept: "application/json",
+        },
+      });
 
-      // if (!profileResponse.ok) {
-      //   throw new Error("Failed to fetch profile");
-      // }
+      if (!profileResponse.ok) {
+        throw new Error("Failed to fetch profile");
+      }
 
       // const userData = await profileResponse.json();
 
