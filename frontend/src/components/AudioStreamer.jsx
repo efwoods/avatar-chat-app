@@ -14,14 +14,6 @@ const AudioStreamer = ({ isTranscribing }) => {
                       import.meta.env.VITE_GITHUB_GIST_FILENAME +
                       "?t=" + Date.now();
     const data = await (await fetch(fetch_url, {cache: "no-store"})).text()
-    // , {
-    //                         method: "GET",
-    //                         cache: "no-store",
-    //                           headers: {
-    //                             "Pragma": "no-cache",
-    //                             "Cache-Control": "no-cache",
-    //                           }
-    //                       })).text();
     console.log("data: " + data)
     wsRef.current = new WebSocket(data + "/transcription/ws");
 
