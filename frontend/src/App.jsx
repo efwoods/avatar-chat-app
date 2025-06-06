@@ -26,6 +26,7 @@ import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
 import CreateAvatarModal from "./components/CreateAvatarModal";
+import { useNgrokApiUrl } from "./context/NgrokAPIContext";
 
 const AvatarChatApp = () => {
   const [avatars, setAvatars] = useState([]);
@@ -59,6 +60,7 @@ const AvatarChatApp = () => {
   const sourceRef = useRef(null);
   const processorRef = useRef(null);
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  const {ngrokHttpsUrl, ngrokWsUrl} = useNgrokApiUrl();
 
   // Auto scroll to bottom when messages change
   useEffect(() => {
@@ -254,17 +256,17 @@ const AvatarChatApp = () => {
 
   const startTranscription = async () => {
     if (!dataExchangeTypes.voice) return;
-    const fetch_url = import.meta.env.VITE_GITHUB_FETCH_URL_ROOT + 
-                      import.meta.env.VITE_GITHUB_GIST_ID + 
-                      import.meta.env.VITE_GITHUB_GIST_FILENAME +
-                      "?t=" + Date.now();
-    console.log("fetch_url:", fetch_url);
+    // const fetch_url = import.meta.env.VITE_GITHUB_FETCH_URL_ROOT + 
+    //                   import.meta.env.VITE_GITHUB_GIST_ID + 
+    //                   import.meta.env.VITE_GITHUB_GIST_FILENAME +
+    //                   "?t=" + Date.now();
+    // console.log("fetch_url:", fetch_url);
 
-    const response = await fetch(fetch_url, {cache: "no-store"})
-    const data = await response.text(); // Wait for response.json() to resolve
-    console.log("ngrok_url:", data);
+    // const response = await fetch(fetch_url, {cache: "no-store"})
+    // const data = await response.text(); // Wait for response.json() to resolve
+    // console.log("ngrok_url:", data);
     
-    const wsUrl = data + '/transcription/ws';
+    const wsUrl = ngrokWsUrl + '/transcription/ws';
     const ws = new WebSocket(wsUrl);
     ws.binaryType = "arraybuffer";
     wsRef.current = ws;
