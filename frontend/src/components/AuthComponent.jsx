@@ -40,11 +40,39 @@ const AuthComponent = () => {
       const { access_token } = await signupResponse.json();
       console.log("access_token:", access_token);
 
+
+      // // Step 2: Fetch profile data using the access token
+      // const profileResponse = await fetch(`${ngrokHttpsUrl}/profile`, {
+      //   method: "GET",
+      //   headers: {
+      //     Authorization: `Bearer ${access_token}`,
+      //     Accept: "application/json",
+      //   },
+      // });
+
+      // if (!profileResponse.ok) {
+      //   throw new Error("Failed to fetch profile");
+      // }
+
+      // const userData = await profileResponse.json();
+
+      // Step 3: Set user state and persist to localStorage
+      // const fullUser = { ...userData, token: access_token };
+      // setUser(fullUser);
+      // setIsLoggedIn(true);
+      // localStorage.setItem("user", JSON.stringify(fullUser));
+
+      // Step 4: Clear form and close modal
+      setUsername("");
+      setEmail("");
+      setPassword("");
+      setShowModal(false);
+
     } catch (err) {
       console.error("Signup or profile fetch error:", err.message);
       setError(err.message);
     }
-  };
+  }
 
 
   const handleLogin = (e) => {
