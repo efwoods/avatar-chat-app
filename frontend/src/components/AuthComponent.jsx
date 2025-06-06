@@ -34,43 +34,55 @@ const AuthComponent = () => {
 
       if (!signupResponse.ok) {
         const err = await signupResponse.json();
+        alert(`Error: ${err.detail} Please try again.`);
         throw new Error(`Signup failed: ${err.detail || signupResponse.status}`);
       }
 
-      const { access_token } = await signupResponse.json();
+      const signupJson = await signupResponse.json();
+      const access_token = signupJson.access_token;
       console.log("access_token:", access_token);
 
-
       // Step 2: Fetch profile data using the access token
+      console.log("ngrokHttpsUrl:", ngrokHttpsUrl);
+      // const profileResponse = await fetch(`${ngrokHttpsUrl}/profile`, {
+      //   method: "GET",
+      //   headers: {
+      //     Authorization: `Bearer ${access_token}`,
+      //     Accept: "application/json",
+      //   },
+      // });
       const profileResponse = await fetch(`${ngrokHttpsUrl}/profile`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${access_token}`,
           Accept: "application/json",
+          "ngrok-skip-browser-warning": "69420"
         },
       });
 
+      const profileData = await profileResponse.json();
+
+      console.log("profileData:", profileData);
+
       if (!profileResponse.ok) {
-        throw new Error("Failed to fetch profile");
+        const errText = await profileResponse.text();
+        throw new Error(`Failed to fetch profile: ${errText || profileResponse.statusText}`);
       }
 
-      // const userData = await profileResponse.json();
+      // Step 3: Update React state and localStorage with profile data
+      setUser(profileData);
+      setIsLoggedIn(true);
+      localStorage.setItem("user", JSON.stringify(profileData));
+      localStorage.setItem("access_token", access_token);
 
-      // Step 3: Set user state and persist to localStorage
-      // const fullUser = { ...userData, token: access_token };
-      // setUser(fullUser);
-      // setIsLoggedIn(true);
-      // localStorage.setItem("user", JSON.stringify(fullUser));
-
-      // Step 4: Clear form and close modal
+      // Step 4: Clear signup form fields and close modal
       setUsername("");
       setEmail("");
       setPassword("");
       setShowModal(false);
-
     } catch (err) {
       console.error("Signup or profile fetch error:", err.message);
-      setError(err.message);
+      throw new Error(`Signup or profile fetch error: ${err.detail || signupResponse.status}`);
     }
   }
 
