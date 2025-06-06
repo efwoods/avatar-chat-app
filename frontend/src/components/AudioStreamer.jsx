@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { fetchWebSocketUrl } from "../../hooks/webSocketUrl";
 
 const AudioStreamer = ({ isTranscribing }) => {
   const wsRef = useRef(null);
@@ -9,7 +10,7 @@ const AudioStreamer = ({ isTranscribing }) => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: "audio/webm" });
 
-    wsRef.current = new WebSocket(import.meta.env.VITE_WEBSOCKET_URL);
+    wsRef.current = new WebSocket(await fetchWebSocketUrl());
 
     wsRef.current.onopen = () => {
       setConnected(true);

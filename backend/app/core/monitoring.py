@@ -24,7 +24,8 @@ ngrok_connections = get_or_create_metric("ngrok_connections_total", "Total ngrok
 ngrok_errors = get_or_create_metric("ngrok_errors_total", "Total ngrok connection errors")
 websocket_errors = get_or_create_metric("websocket_errors_total", "Total WebSocket errors")
 db_connection_status = get_or_create_metric("db_connection_status", "Database connection status (1=up, 0=down)", "gauge",  labelnames=["database"])
-
+cloudflare_errors = get_or_create_metric("cloudflare_errors_total", "Total Cloudflare errors")
+cloudflare_url_updated = get_or_create_metric("cloudflare_url_updated", "Cloudflare URL updated with Ngrok URL (1=success, 0=not_set)", "gauge", labelnames=["database"])
 class Metrics:
     def __init__(self):
         self.health_requests = health_requests
@@ -35,5 +36,6 @@ class Metrics:
         self.ngrok_errors = ngrok_errors
         self.websocket_errors = websocket_errors
         self.db_connection_status = db_connection_status
+        self.cloudflare_url_updated = cloudflare_url_updated
 
 metrics = Metrics()

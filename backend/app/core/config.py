@@ -10,7 +10,6 @@ logger.debug("This is a DEBUG message")
 logger.info("This is an INFO message")
 logger.error("This is an ERROR message")
 
-
 class Settings(BaseSettings):
     # PostgreSQL
     POSTGRES_DB: str
@@ -33,6 +32,7 @@ class Settings(BaseSettings):
     FASTAPI_PORT: int = 8765
     WEBSOCKET_PORT: int = 8765
     NGROK_AUTH_TOKEN: str
+    REGISTRY_ENDPOINT: str
 
     # JWT
     SECRET_KEY: str

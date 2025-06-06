@@ -22,3 +22,4 @@ python-multipart
 PyJWT
 pydantic[email]
 redis
+httpx

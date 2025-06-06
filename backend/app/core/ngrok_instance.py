@@ -2,6 +2,7 @@ from pyngrok import ngrok
 from app.core.config import settings, logger
 from app.core.monitoring import metrics
 import asyncio
+import httpx
 
 _ngrok_tunnel = None
 _ngrok_url = None
@@ -26,6 +27,18 @@ async def get_ngrok_client():
                     metrics.ngrok_connections.inc()
                 else:
                     raise RuntimeError("Ngrok tunnel failed to get public_url.")
+                async with httpx.AsyncClient() as client:
+                    try:
+                        await client.post(
+                            settings.REGISTRY_ENDPOINT,
+                            json={"backend_url": _ngrok_url},
+                            timeout=10
+                        )
+                        logger.info(f"Registered backend URL: {_ngrok_url}")
+                        metrics.cloudflare_url_updated.labels(database="cloudflare").set(1)
+                    except Exception as e:
+                        logger.error(f"Failed to register backend URL: {e}")
+                        metrics.cloudflare_errors.inc()
             except Exception as e:
                 logger.error(f"Failed to start ngrok: {e}")
                 metrics.ngrok_errors.inc()
