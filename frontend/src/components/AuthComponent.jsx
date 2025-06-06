@@ -87,18 +87,58 @@ const AuthComponent = () => {
   }
 
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser && storedUser.email === email && storedUser.password === password) {
       setUser(storedUser);
       setIsLoggedIn(true);
     } else {
-      alert("Invalid credentials");
+      try
+      {
+        const loginData = { email, password };
+        const loginResponse = await fetch(`${ngrokHttpsUrl}/login`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            Accept: "application/json",
+            "ngrok-skip-browser-warning": "69420"
+          },
+          body: JSON.stringify(loginData),
+        });
+
+        const loginJson = await loginResponse.json();
+        const access_token = loginJson.access_token;
+        console.log("access_token:", access_token);
+
+        const profileResponse = await fetch(`${ngrokHttpsUrl}/profile`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            Accept: "application/json",
+            "ngrok-skip-browser-warning": "69420"
+          },
+        });
+        const profileData = await profileResponse.json();
+        console.log("profileData:", profileData);
+        if (!profileResponse.ok) {
+          const errText = await profileResponse.text();
+          throw new Error(`Failed to fetch profile: ${errText || profileResponse.statusText}`);
+        }
+        // Step 3: Update React state and localStorage with profile data
+        setUser(profileData);
+        setIsLoggedIn(true);
+        localStorage.setItem("user", JSON.stringify(profileData));
+        localStorage.setItem("access_token", access_token);
+        // Step 4: Clear login form fields and close modal
+        setEmail("");
+        setPassword("");
+        setShowModal(false);
+      } catch (err) {
+          console.error("Login or profile fetch error:", err.message);
+          throw new Error(`Login or profile fetch error: ${err.detail || signupResponse.status}`);
+      } 
     }
-    setShowModal(false);
-    setEmail("");
-    setPassword("");
   };
 
   const handleLogout = () => {
