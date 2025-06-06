@@ -4,6 +4,7 @@ from app.core.config import settings
 import jwt
 from datetime import datetime, timedelta
 from app.db.database import db
+from app.db.sql import get_current_user_profile
 
 # Instance-level shared components
 
@@ -25,7 +26,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     except (jwt.PyJWTError, ValueError):
         raise credentials_exception
     async with db.postgres_pool.acquire() as conn:
-        user = await conn.fetchrow("SELECT id, email FROM users WHERE id = $1", user_id)
+        user = await conn.fetchrow(get_current_user_profile, user_id)
         if user is None:
             raise HTTPException(status_code=401, detail="User not found")
         return user

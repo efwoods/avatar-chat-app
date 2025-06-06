@@ -17,6 +17,7 @@ from app.db.models.avatar import AvatarCreate, Message
 from bson.objectid import ObjectId
 import json
 from app.core.config import logger
+from app.db.sql import signup_user, update_last_user_login, select_id_with_user_email, login_user
 
 router = APIRouter()
 
@@ -26,16 +27,15 @@ async def signup(user: UserCreate):
     async with db.postgres_pool.acquire() as conn:
         try:
             await conn.execute(
-                "INSERT INTO users (username, email, password, created_at, last_login) VALUES ($1, $2, $3, $4, $5)",
+                signup_user,
                 user.username,
                 user.email,
                 hashed_password,
                 datetime.now(),
-                None
             )
             
-        # Retrieve user ID (you can alternatively use RETURNING in the INSERT)
-            row = await conn.fetchrow("SELECT id FROM users WHERE email = $1", user.email)
+            # Retrieve user ID (you can alternatively use RETURNING in the INSERT)
+            row = await conn.fetchrow(select_id_with_user_email, user.email)
             if not row:
                 raise HTTPException(status_code=500, detail="Failed to retrieve user after creation")
 
@@ -45,23 +45,31 @@ async def signup(user: UserCreate):
             # Cache the token in Redis
             redis_client = await get_redis_client()
             await redis_client.setex(f"token:{access_token}", settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60, user_id)
+            
+            await conn.execute(
+                update_last_user_login,
+                datetime.now(),
+                user_id
+            )
+
             logger.info("User created successfully")
             return {"access_token": access_token, "token_type": "bearer"}
 
         except asyncpg.UniqueViolationError:
-            raise HTTPException(status_code=400, detail="Email already registered")
+            raise HTTPException(status_code=400, detail="Email already registered.")
         
 from fastapi.security import OAuth2PasswordRequestForm
 
 @router.post("/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     async with db.postgres_pool.acquire() as conn:
-        row = await conn.fetchrow("SELECT id, password FROM users WHERE email = $1", form_data.username)
+        row = await conn.fetchrow(login_user, form_data.username)
         if not row or not pwd_context.verify(form_data.password, row["password"]):
             raise HTTPException(status_code=401, detail="Invalid email or password")
         access_token = create_access_token(data={"sub": str(row["id"])})
         redis_client = await get_redis_client()
         await redis_client.setex(f"token:{access_token}", settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60, str(row["id"]))
+        await conn.execute(update_last_user_login, datetime.now(), row["id"]) # update the user's last login timef
         return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/logout")
@@ -79,8 +87,8 @@ async def logout(token: str = Depends(oauth2_scheme)):
     except jwt.PyJWTError as e:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-@router.get("/current_user")
-async def get_current_user(current_user: asyncpg.Record = Depends(get_current_user)):
+@router.get("/profile")
+async def profile(current_user: asyncpg.Record = Depends(get_current_user)):
     return {
         "id": str(current_user["id"]),
         "username": str(current_user["username"]),

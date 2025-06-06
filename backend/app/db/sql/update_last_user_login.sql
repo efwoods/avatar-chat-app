@@ -1,0 +1,1 @@
+UPDATE users SET last_login = $1 WHERE id = $2

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { LogIn, LogOut, UserPlus } from "lucide-react";
+import { useNgrokApiUrl } from "../context/NgrokAPIContext";
 
 const AuthComponent = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -9,6 +10,7 @@ const AuthComponent = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const {ngrokHttpsUrl, ngrokWsUrl} = useNgrokApiUrl();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -21,30 +23,29 @@ const AuthComponent = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     const signupData = { username, email, password };
+
     try {
-      
-      const response = await fetch("http://localhost:8000/signup", {
+      // Step 1: Sign up and receive access token
+      const signupResponse = await fetch(`${ngrokHttpsUrl}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(signupData),
       });
-      if (response.ok) {
-        const newUser = { email, username, password }; // Simulate response data
-        localStorage.setItem("user", JSON.stringify(newUser));
-        setUser(newUser);
-        setIsLoggedIn(true);
-        setShowModal(false);
-        setEmail("");
-        setPassword("");
-        setUsername("");
-      } else {
-        alert("Signup failed. Please try again.");
+
+      if (!signupResponse.ok) {
+        const err = await signupResponse.json();
+        throw new Error(`Signup failed: ${err.detail || signupResponse.status}`);
       }
-    } catch (error) {
-      console.error("Signup error:", error);
-      alert("An error occurred during signup.");
+
+      const { access_token } = await signupResponse.json();
+      console.log("access_token:", access_token);
+
+    } catch (err) {
+      console.error("Signup or profile fetch error:", err.message);
+      setError(err.message);
     }
   };
+
 
   const handleLogin = (e) => {
     e.preventDefault();

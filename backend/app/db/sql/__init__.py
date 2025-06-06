@@ -1,5 +1,13 @@
 from pathlib import Path
 
-# Read the .sql file and expose it as a string
-init_schema_postgres = Path(__file__).parent / "init_schema_postgres.sql"
-init_schema_postgres = init_schema_postgres.read_text(encoding="utf-8")
+# Directory of SQL files
+sql_dir = Path(__file__).parent
+
+# Read all SQL files and expose their content as variables named after the files (without extension)
+for sql_file in sql_dir.glob("*.sql"):
+    var_name = sql_file.stem
+    sql_text = sql_file.read_text(encoding="utf-8")
+    globals()[var_name] = sql_text  # dynamic variable assignment for import
+
+# Optional: list of all available SQL variables for introspection
+__all__ = [f.stem for f in sql_dir.glob("*.sql")]
