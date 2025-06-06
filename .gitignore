@@ -4,6 +4,7 @@
 **/docker-compose*.yml
 **/.env
 .vscode/
+docker-compose.future.yml
 
 ROADMAP.md
 *.pem
