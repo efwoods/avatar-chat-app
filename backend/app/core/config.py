@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     # Torch
     DEVICE: str = "cuda" if torch.cuda.is_available() else "cpu"
 
+    # Transcription
+    SAMPLE_RATE = 16000
+    CHUNK_DURATION = 5
+    
+
     class Config:
         env_file = ".env"
 

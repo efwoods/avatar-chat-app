@@ -13,8 +13,8 @@ router = APIRouter()
 async def get_websocket_url():
     metrics.websocket_url_requests.inc()
     ngrok_state = await get_ngrok_client()
-    logger.info(f"Websocket URL requested: {ngrok_state}")
-    return {"websocket_url": ngrok_state or f"ws://localhost:{settings.WEBSOCKET_PORT}"}
+    logger.info(f"Websocket URL requested: {ngrok_state + '/transcription/ws'}")
+    return {"websocket_url": ngrok_state + '/transcription/ws' or f"ws://localhost:{settings.WEBSOCKET_PORT} + '/transcription/ws'"}
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

@@ -254,7 +254,11 @@ const AvatarChatApp = () => {
 
   const startTranscription = async () => {
     if (!dataExchangeTypes.voice) return;
-    const wsUrl = import.meta.env.VITE_WEBSOCKET_URL || "ws://localhost:8000/ws/transcribe";
+    const ws_url = await fetch('http://0.0.0.0:8765/transcription/websocket-url');
+    const ngrok_url = await ws_url.json();
+    console.log(ngrok_url.websocket_url);
+    const wsUrl = ngrok_url.websocket_url;
+    // const wsUrl = import.meta.env.VITE_WEBSOCKET_URL || "ws://localhost:8000/ws/transcribe";
     const ws = new WebSocket(wsUrl);
     ws.binaryType = "arraybuffer";
     wsRef.current = ws;
