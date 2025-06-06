@@ -18,16 +18,32 @@ const AuthComponent = () => {
     }
   }, []);
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    const newUser = { email, username, password };
-    localStorage.setItem("user", JSON.stringify(newUser));
-    setUser(newUser);
-    setIsLoggedIn(true);
-    setShowModal(false);
-    setEmail("");
-    setPassword("");
-    setUsername("");
+    const signupData = { username, email, password };
+    try {
+      
+      const response = await fetch("http://localhost:8000/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(signupData),
+      });
+      if (response.ok) {
+        const newUser = { email, username, password }; // Simulate response data
+        localStorage.setItem("user", JSON.stringify(newUser));
+        setUser(newUser);
+        setIsLoggedIn(true);
+        setShowModal(false);
+        setEmail("");
+        setPassword("");
+        setUsername("");
+      } else {
+        alert("Signup failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Signup error:", error);
+      alert("An error occurred during signup.");
+    }
   };
 
   const handleLogin = (e) => {
