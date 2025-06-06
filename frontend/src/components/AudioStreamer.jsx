@@ -8,11 +8,22 @@ const AudioStreamer = ({ isTranscribing }) => {
   const startStreaming = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: "audio/webm" });
-    const ws_url = await fetch('http://localhost:8765/transcription/websocket-url');
-    const ngrokDataURL = await ws_url.json();
-    console.log(ngrokDataURL.websocket_url);
-    wsRef.current = new WebSocket(ngrokDataURL.websocket_url);
-    // wsRef.current = new WebSocket(import.meta.env.VITE_WEBSOCKET_URL);
+    
+    const fetch_url = import.meta.env.VITE_GITHUB_FETCH_URL_ROOT + 
+                      import.meta.env.VITE_GITHUB_GIST_ID + 
+                      import.meta.env.VITE_GITHUB_GIST_FILENAME +
+                      "?t=" + Date.now();
+    const data = await (await fetch(fetch_url, {cache: "no-store"})).text()
+    // , {
+    //                         method: "GET",
+    //                         cache: "no-store",
+    //                           headers: {
+    //                             "Pragma": "no-cache",
+    //                             "Cache-Control": "no-cache",
+    //                           }
+    //                       })).text();
+    console.log("data: " + data)
+    wsRef.current = new WebSocket(data + "/transcription/ws");
 
     wsRef.current.onopen = () => {
       setConnected(true);

@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     SAMPLE_RATE = 16000
     CHUNK_DURATION = 5
     
+    # GITHUB
+    GITHUB_TOKEN: str
+    VITE_GITHUB_GIST_ID: str
 
     class Config:
         env_file = ".env"

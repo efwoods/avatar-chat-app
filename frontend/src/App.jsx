@@ -254,14 +254,32 @@ const AvatarChatApp = () => {
 
   const startTranscription = async () => {
     if (!dataExchangeTypes.voice) return;
-    const ws_url = await fetch('http://0.0.0.0:8765/transcription/websocket-url');
-    const ngrok_url = await ws_url.json();
-    console.log(ngrok_url.websocket_url);
-    const wsUrl = ngrok_url.websocket_url;
-    // const wsUrl = import.meta.env.VITE_WEBSOCKET_URL || "ws://localhost:8000/ws/transcribe";
+    const fetch_url = import.meta.env.VITE_GITHUB_FETCH_URL_ROOT + 
+                      import.meta.env.VITE_GITHUB_GIST_ID + 
+                      import.meta.env.VITE_GITHUB_GIST_FILENAME +
+                      "?t=" + Date.now();
+    console.log("fetch_url:", fetch_url);
+
+    const response = await fetch(fetch_url, {cache: "no-store"})
+    // , {
+    //                         method: "GET",
+    //                         cache: "no-store",
+    //                           headers: {
+    //                             "Pragma": "no-cache",
+    //                             "Cache-Control": "no-cache",
+    //                           }
+    //                       });
+    const data = await response.text(); // Wait for response.json() to resolve
+    console.log("ngrok_url:", data);
+    
+    const wsUrl = data + '/transcription/ws';
     const ws = new WebSocket(wsUrl);
     ws.binaryType = "arraybuffer";
     wsRef.current = ws;
+      
+    // const ws_url = await fetch('http://0.0.0.0:8765/transcription/websocket-url');
+    // const ngrok_url = await ws_url.json();
+    // const wsUrl = import.meta.env.VITE_WEBSOCKET_URL || "ws://localhost:8000/ws/transcribe";
 
     ws.onopen = async () => {
       console.log("WebSocket connection opened");

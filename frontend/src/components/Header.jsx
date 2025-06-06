@@ -1,7 +1,7 @@
 import React from "react";
 import { PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react";
 import NeuralNexusLogo from '../assets/NeuralNexus.png';
-
+import AuthComponent from "./AuthComponent";
 
 const Header = ({ sidebarVisible, setSidebarVisible }) => {
   return (
@@ -20,7 +20,9 @@ const Header = ({ sidebarVisible, setSidebarVisible }) => {
       <h1 className="text-2xl font-semibold">Neural</h1>
       <img src={NeuralNexusLogo} alt="Logo" className="w-20 h-20 bg-transparent" />
       <h1 className="text-2xl font-semibold">Nexus</h1>
+      <AuthComponent/>
     </div>
+
   );
 };
 

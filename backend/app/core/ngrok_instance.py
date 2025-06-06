@@ -3,6 +3,7 @@ from app.core.config import settings, logger
 from app.core.monitoring import metrics
 import asyncio
 import httpx
+import json 
 
 _ngrok_tunnel = None
 _ngrok_url = None
@@ -25,25 +26,37 @@ async def get_ngrok_client():
                     _ngrok_url = _ngrok_tunnel.public_url.replace("https", "wss")
                     logger.info(f"Ngrok WebSocket URL: {_ngrok_url}")
                     metrics.ngrok_connections.inc()
-                else:
-                    raise RuntimeError("Ngrok tunnel failed to get public_url.")
-                async with httpx.AsyncClient() as client:
+                    # Logic to update github GIST with ngrok URL
                     try:
-                        await client.post(
-                            settings.REGISTRY_ENDPOINT,
-                            json={"backend_url": _ngrok_url},
-                            timeout=10
-                        )
-                        logger.info(f"Registered backend URL: {_ngrok_url}")
-                        metrics.cloudflare_url_updated.labels(database="cloudflare").set(1)
+                        async with httpx.AsyncClient() as client:
+                            gist_url = f"https://api.github.com/gists/{settings.VITE_GITHUB_GIST_ID}"
+                            headers = {"Authorization": f"token {settings.GITHUB_TOKEN}"}
+                            # data = json.dumps({ "ws_url": _ngrok_url })
+
+                            gist_data = {
+                                "description": "Ngrok WebSocket URL",
+                                "files": {
+                                    "ngrok_url.txt": {
+                                        "content": _ngrok_url
+                                    }
+                                }
+                            }
+                            response = await client.patch(gist_url, headers=headers, json=gist_data)
+                            response.raise_for_status() 
+                            logger.info(f"Registered backend URL: {_ngrok_url}")
+                            metrics.github_gist_url_updated.labels(database="github_gist").set(1)
                     except Exception as e:
-                        logger.error(f"Failed to register backend URL: {e}")
-                        metrics.cloudflare_errors.inc()
+                        metrics.github_gist_update_errors.inc()
+                        raise RuntimeError(f"Failed to register backend URL: {e}")
+                else:
+                    metrics.ngrok_errors.inc()
+                    raise RuntimeError("Ngrok tunnel failed to get public_url.")
+                        
             except Exception as e:
-                logger.error(f"Failed to start ngrok: {e}")
                 metrics.ngrok_errors.inc()
                 _ngrok_tunnel = None
                 _ngrok_url = None
+                raise RuntimeError(f"Failed to start ngrok: {e}")
     logger.info(f"Websocket URL requested: {_ngrok_url}")
     return _ngrok_url
     
