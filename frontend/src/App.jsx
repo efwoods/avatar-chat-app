@@ -28,6 +28,7 @@ import ChatArea from "./components/ChatArea";
 import CreateAvatarModal from "./components/CreateAvatarModal";
 import { useNgrokApiUrl } from "./context/NgrokAPIContext";
 
+
 const AvatarChatApp = () => {
   const [avatars, setAvatars] = useState([]);
   const [activeAvatar, setActiveAvatar] = useState(null);
