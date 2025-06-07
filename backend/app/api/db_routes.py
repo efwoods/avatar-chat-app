@@ -37,7 +37,7 @@ async def signup(user: UserCreate):
             # Retrieve user ID (you can alternatively use RETURNING in the INSERT)
             row = await conn.fetchrow(select_id_with_user_email, user.email)
             if not row:
-                raise HTTPException(status_code=500, detail="Failed to retrieve user after creation")
+                raise HTTPException(status_code=500, detail="Failed to retrieve user after creation.")
 
             user_id = str(row["id"])
             access_token = create_access_token(data={"sub": user_id})
@@ -65,7 +65,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     async with db.postgres_pool.acquire() as conn:
         row = await conn.fetchrow(login_user, form_data.username)
         if not row or not pwd_context.verify(form_data.password, row["password"]):
-            raise HTTPException(status_code=401, detail="Invalid email or password")
+            raise HTTPException(status_code=401, detail="Invalid email or password.")
         access_token = create_access_token(data={"sub": str(row["id"])})
         redis_client = await get_redis_client()
         await redis_client.setex(f"token:{access_token}", settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60, str(row["id"]))
@@ -83,9 +83,9 @@ async def logout(token: str = Depends(oauth2_scheme)):
         await redis_client.delete(f"token:{token}")
         return {"message": "Logout successful. Please delete the token on client side."}
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
+        raise HTTPException(status_code=401, detail="Token expired.")
     except jwt.PyJWTError as e:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Invalid token.")
 
 @router.get("/profile")
 async def profile(current_user: asyncpg.Record = Depends(get_current_user)):
@@ -133,7 +133,7 @@ async def select_avatar(avatar_id: int, current_user=Depends(get_current_user)):
             "user_id": str(current_user["id"])
         })
         if not doc:
-            raise HTTPException(status_code=404, detail="No conversation found for avatar")
+            raise HTTPException(status_code=404, detail="No conversation found for avatar.")
         messages = doc.get("messages", [])
         await redis_client.set(redis_key, json.dumps(messages))
 
