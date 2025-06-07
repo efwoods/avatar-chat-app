@@ -1,0 +1,1 @@
+SELECT id, name, description, created_at FROM avatars WHERE user_id = $1

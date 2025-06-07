@@ -9,10 +9,10 @@ CREATE TABLE IF NOT EXISTS users (
     last_login TIMESTAMPTZ DEFAULT NULL
 );
 
-CREATE TABLE IF NOT EXISTS avatars (
-    id SERIAL PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+CREATE TABLE avatars (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id),
     name TEXT NOT NULL,
     description TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT now()
 );

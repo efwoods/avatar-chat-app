@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 from fastapi import APIRouter, Depends
 from app.db.models.user import UserLogin, UserCreate
 from fastapi import APIRouter, HTTPException
@@ -17,7 +18,7 @@ from app.db.models.avatar import AvatarCreate, Message
 from bson.objectid import ObjectId
 import json
 from app.core.config import logger
-from app.db.sql import signup_user, update_last_user_login, select_id_with_user_email, login_user
+from app.db.sql import signup_user, update_last_user_login, select_id_with_user_email, login_user, create_avatar_sql, get_all_avatars_per_user
 
 router = APIRouter()
 
@@ -102,17 +103,17 @@ async def create_avatar(
     current_user=Depends(get_current_user)
 ):
     async with db.postgres_pool.acquire() as conn:
-        avatar_id = await conn.fetchval(
-            "INSERT INTO avatars (user_id, name, description) VALUES ($1, $2, $3) RETURNING id",
+        avatar_id: UUID = await conn.fetchval(
+            create_avatar_sql,
             current_user["id"], avatar.name, avatar.description
         )
-    return {"avatar_id": avatar_id}
+    return {"avatar_id": str(avatar_id)}  # return string form of UUID for frontend use
 
 @router.get("/avatars")
 async def get_avatars(current_user=Depends(get_current_user)):
     async with db.postgres_pool.acquire() as conn:
         rows = await conn.fetch(
-            "SELECT id, name, description, created_at FROM avatars WHERE user_id = $1",
+            get_all_avatars_per_user,
             current_user["id"]
         )
     return [dict(row) for row in rows]

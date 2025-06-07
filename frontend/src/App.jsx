@@ -257,16 +257,6 @@ const AvatarChatApp = () => {
 
   const startTranscription = async () => {
     if (!dataExchangeTypes.voice) return;
-    // const fetch_url = import.meta.env.VITE_GITHUB_FETCH_URL_ROOT + 
-    //                   import.meta.env.VITE_GITHUB_GIST_ID + 
-    //                   import.meta.env.VITE_GITHUB_GIST_FILENAME +
-    //                   "?t=" + Date.now();
-    // console.log("fetch_url:", fetch_url);
-
-    // const response = await fetch(fetch_url, {cache: "no-store"})
-    // const data = await response.text(); // Wait for response.json() to resolve
-    // console.log("ngrok_url:", data);
-    
     const wsUrl = ngrokWsUrl + '/transcription/ws';
     const ws = new WebSocket(wsUrl);
     ws.binaryType = "arraybuffer";

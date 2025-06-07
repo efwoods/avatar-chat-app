@@ -8,7 +8,7 @@ const AuthComponent = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const { user, isLoggedIn, login, signup, logout } = useAuth();
+  const { user, isLoggedIn, accessToken, login, signup, logout } = useAuth();
 
   const handleAuth = async (e) => {
     e.preventDefault();
