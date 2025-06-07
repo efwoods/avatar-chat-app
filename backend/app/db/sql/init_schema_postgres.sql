@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     last_login TIMESTAMPTZ DEFAULT NULL
 );
 
-CREATE TABLE avatars (
+CREATE TABLE IF NOT EXISTS avatars (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id),
     name TEXT NOT NULL,

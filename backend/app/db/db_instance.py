@@ -4,6 +4,8 @@ from app.core.monitoring import metrics
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.db.database import db
 from app.db.sql import init_schema_postgres
+import asyncpg
+import asyncio
 
 async def init_postgres():
     try:
@@ -17,7 +19,7 @@ async def init_postgres():
             max_size=10
         )
 
-        logger.info("PostgreSQL pool initialized.")
+        logger.debug("PostgreSQL pool initialized.")
         metrics.db_connection_status.labels(database="postgres").set(1)
 
         async with db.postgres_pool.acquire() as conn:
