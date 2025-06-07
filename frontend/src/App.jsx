@@ -111,7 +111,7 @@ const AvatarChatApp = () => {
       createdAt: new Date().toISOString(),
     };
     setAvatars((prev) => [...prev, newAvatar]);
-    setMessages((prev) => ({ ...prev, [newAvatar.id]: [] }));
+    setMessages((prev) => ({ ...prev, [newAvatar.avatar_id]: [] }));
     setActiveAvatar(newAvatar);
     setNewAvatarName("");
     setNewAvatarDescription("");
@@ -119,13 +119,13 @@ const AvatarChatApp = () => {
   };
 
   const deleteAvatar = (avatarId) => {
-    setAvatars((prev) => prev.filter((a) => a.id !== avatarId));
+    setAvatars((prev) => prev.filter((a) => a.avatar_id !== avatarId));
     setMessages((prev) => {
       const copy = { ...prev };
       delete copy[avatarId];
       return copy;
     });
-    if (activeAvatar?.id === avatarId) {
+    if (activeAvatar?.avatar_id === avatarId) {
       setActiveAvatar(null);
     }
   };
@@ -137,7 +137,7 @@ const AvatarChatApp = () => {
 
     setAvatars((prev) =>
       prev.map((avatar) => {
-        if (avatar.id === activeAvatar.id) {
+        if (avatar.avatar_id === activeAvatar.id) {
           const newFiles = files.map((file) => ({
             id: Date.now() + Math.random(),
             name: file.name,

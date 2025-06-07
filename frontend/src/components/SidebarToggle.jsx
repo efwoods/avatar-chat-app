@@ -16,9 +16,9 @@ export default function SidebarToggle({
       <div className="space-y-3 max-h-96 overflow-y-auto">
         {avatars.map((avatar) => (
           <div
-            key={avatar.id}
+            key={avatar.avatar_id}
             className={`p-4 rounded-xl cursor-pointer transition-all duration-300 ${
-              activeAvatar?.id === avatar.id
+              activeAvatar?.avatar_id === avatar.avatar_id
                 ? "bg-gradient-to-r from-cyan-500/30 to-purple-600/30 border border-cyan-400/50"
                 : "bg-white/5 hover:bg-white/10 border border-transparent"
             }`}
@@ -38,7 +38,7 @@ export default function SidebarToggle({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  deleteAvatar(avatar.id);
+                  deleteAvatar(avatar.avatar_id);
                 }}
                 className="text-red-400 hover:text-red-300 p-1 rounded transition-colors"
               >
