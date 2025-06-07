@@ -1,7 +1,10 @@
 import React from "react";
 import { UserPenIcon, User, Trash2 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 const Sidebar = ({ avatars, activeAvatar, setActiveAvatar, deleteAvatar, setShowCreateModal }) => {
+  const {isLoggedIn} = useAuth();
+  const displayAvatars = isLoggedIn ? avatars : [] 
   return (
     <div className="w-64 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20 p-4 overflow-y-auto flex flex-col gap-4">
       <button
@@ -12,14 +15,14 @@ const Sidebar = ({ avatars, activeAvatar, setActiveAvatar, deleteAvatar, setShow
          
       </button>
       <div className="flex flex-col gap-2 mt-2">
-        {avatars.length === 0 && (
+        {displayAvatars.length === 0 && (
           <div className="text-sm text-gray-400 text-center">
             No avatars yet.
           </div>
         )}
-        {avatars.map((avatar) => (
+        {displayAvatars.map((avatar) => (
           <div
-            key={avatar.id}
+            key={avatar.avatar_id}
             onClick={() => setActiveAvatar(avatar)}
             className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors duration-300 ${
               activeAvatar?.id === avatar.id
@@ -29,7 +32,7 @@ const Sidebar = ({ avatars, activeAvatar, setActiveAvatar, deleteAvatar, setShow
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === "Enter") setActiveAvatar(avatar);
-              if (e.key === "Delete") deleteAvatar(avatar.id);
+              if (e.key === "Delete") deleteAvatar(avatar.avatar_id);
             }}
           >
             <User className="w-6 h-6" />
@@ -42,7 +45,7 @@ const Sidebar = ({ avatars, activeAvatar, setActiveAvatar, deleteAvatar, setShow
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                deleteAvatar(avatar.id);
+                deleteAvatar(avatar.avatar_id);
               }}
               className="text-red-400 hover:text-red-600 focus:outline focus:outline-2 focus:outline-red-400"
               aria-label={`Delete avatar ${avatar.name}`}
