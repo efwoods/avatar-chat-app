@@ -152,10 +152,29 @@ const AuthComponent = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    setIsLoggedIn(false);
+  const handleLogout = async (e) => {
+    try{
+      let access_token = localStorage.getItem("access_token");
+      const logoutResponse = await fetch(`${ngrokHttpsUrl}/logout`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+          Accept: "application/json",
+          "ngrok-skip-browser-warning": "69420"
+        },
+      });
+      if (!logoutResponse.ok) {
+          const errText = await logoutResponse.text();
+          throw new Error(`Failed to fetch profile: ${errText || logoutResponse.statusText}`);
+        }
+      localStorage.removeItem("user");
+      localStorage.removeItem("access_token");
+      setUser(null);
+      setIsLoggedIn(false);
+    } catch (err) {
+      console.error("Logout error:", err.message);
+      throw new Error(`Logout error: ${err.detail || signupResponse.status}`);
+    }
   };
 
   return (
