@@ -96,15 +96,26 @@ const AuthComponent = () => {
     } else {
       try
       {
-        const loginData = { email, password };
+        const loginData = { "username":email, "password":password };
+        console.log(JSON.stringify(loginData))
+        const loginParams = new URLSearchParams();
+        loginParams.append("username", email);
+        loginParams.append("password", password);
+        loginParams.append("grant_type", "");       // Optional but aligns with OAuth2 spec
+        loginParams.append("scope", "");
+        loginParams.append("client_id", "");
+        loginParams.append("client_secret", "");
+
+        
         const loginResponse = await fetch(`${ngrokHttpsUrl}/login`, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${access_token}`,
+            // Authorization: `Bearer ${access_token}`,
+            "Content-Type": "application/x-www-form-urlencoded", 
             Accept: "application/json",
             "ngrok-skip-browser-warning": "69420"
           },
-          body: JSON.stringify(loginData),
+          body: loginParams.toString(),
         });
 
         const loginJson = await loginResponse.json();
