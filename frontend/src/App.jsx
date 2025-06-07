@@ -337,7 +337,7 @@ const AvatarChatApp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-green-900 text-white">
       <div className="w-screen h-screen flex flex-col p-6 min-h-screen">
         <Header sidebarVisible={sidebarVisible} setSidebarVisible={setSidebarVisible} />
         <div className="flex flex-row flex-grow overflow-hidden rounded-2xl shadow-lg gap-x-4">
